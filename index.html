@@ -17,7 +17,7 @@
   --light: #e8dcc8;
   --table-bg: #2c6e8a;
   --table-hover: #1e5470;
-  --chair-color: #2c6e8a;
+  --chair-color: #a8d4e8;
   --chair-seated: #7a9e7e;
   --chair-female: #e8889a;
   --chair-female-seated: #d4607a;
@@ -333,28 +333,87 @@ header h1 {
   position: absolute;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  cursor: move;
+  user-select: none;
+}
+.table-group:hover .table-drag-handle { opacity: 1; }
+.table-drag-handle {
+  position: absolute;
+  top: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.55rem;
+  color: var(--mid);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.table-group.dragging-table { opacity: 0.7; z-index: 500; }
+.table-group.block-drop-target-possible { outline: 2px dashed var(--gold); outline-offset: 4px; border-radius: 6px; }
+.table-group.block-drop-hover { outline: 2px solid var(--sage); outline-offset: 4px; border-radius: 6px; background: rgba(122,158,126,0.06); }
+
+/* Table name label above the content */
+.table-name-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  pointer-events: all;
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+  transition: border-color 0.15s, color 0.15s;
+}
+.table-name-label:hover {
+  color: var(--deep);
+  border-bottom-color: var(--gold);
+}
+
+/* Table content wrapper */
+.table-content {
+  display: flex;
+  flex-direction: column;
   align-items: center;
 }
 
-/* The table rectangle */
+/* The table rectangle — now a flex row of block segments */
 .table-rect {
   background: var(--table-bg);
   border-radius: 4px;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
   color: white;
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  text-align: center;
-  padding: 0 8px;
   cursor: pointer;
   transition: background 0.15s;
-  white-space: nowrap;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .table-rect:hover { background: var(--table-hover); }
+
+/* Individual block segment inside the table rect */
+.table-block {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  flex-grow: 0;
+  cursor: grab;
+  position: relative;
+  box-sizing: border-box;
+}
+.table-block:active { cursor: grabbing; }
+.table-block + .table-block {
+  border-left: 1px solid rgba(255,255,255,0.22);
+}
+.table-block:hover {
+  background: rgba(255,255,255,0.08);
+}
 
 /* Middle row: optional side seats + table */
 .table-mid-row {
@@ -366,9 +425,9 @@ header h1 {
 /* Seat rows */
 .seats-row {
   display: flex;
-  gap: 2px;
-  justify-content: center;
-  width: 100%;
+  gap: 3px;
+  justify-content: flex-start;
+  box-sizing: border-box;
 }
 
 /* SEAT */
@@ -387,11 +446,11 @@ header h1 {
   justify-content: center;
   overflow: visible;
 }
-/* Chair shape per side */
-.seat[data-side="top"]    { border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%; }
-.seat[data-side="bottom"] { border-radius: 40% 40% 50% 50% / 40% 40% 60% 60%; }
-.seat[data-side="left"]   { border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%; }
-.seat[data-side="right"]  { border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%; }
+/* Chair shape — clean circle with subtle flat on table side */
+.seat[data-side="top"]    { border-radius: 50% 50% 45% 45%; }
+.seat[data-side="bottom"] { border-radius: 45% 45% 50% 50%; }
+.seat[data-side="left"]   { border-radius: 50%; }
+.seat[data-side="right"]  { border-radius: 50%; }
 
 .seat.occupied { background: var(--chair-seated); opacity: 1; cursor: grab; }
 .seat.female { background: var(--chair-female); opacity: 0.85; }
@@ -594,12 +653,13 @@ header h1 {
     <div class="floor-viewport" id="floorViewport">
       <div class="floor-container" id="floorContainer">
         <!-- Static room elements -->
-        <div class="dancefloor" style="left:620px;top:230px;width:380px;height:310px;">Dancefloor</div>
-        <div class="dj-booth" style="left:620px;top:640px;width:190px;height:46px;">DJ</div>
-        <div class="entrance-marker" style="left:860px;top:634px;">
+        <div class="dancefloor" style="left:620px;top:230px;width:380px;height:260px;">Dancefloor</div>
+        <div class="dj-booth" style="left:620px;top:594px;width:190px;height:40px;">DJ</div>
+        <div class="entrance-marker" style="left:860px;top:588px;">
           <div class="entrance-arrow"></div>
           <div class="entrance-label">Entrance</div>
         </div>
+        <div class="dj-booth" style="left:60px;top:672px;width:220px;height:40px;font-size:0.65rem;">Buffet pour fromage / dessert</div>
         <!-- Tables injected by JS -->
       </div>
     </div>
@@ -858,81 +918,150 @@ const SEAT_GAP  = 3;
 
 const TABLES = [
   // ── Table 1: Head Table — center top, 17+17 = 34 seats ──────
+  // 5 blocks × (3+3) + 2 end caps × 2 = 30+4=34
   {
     id: "t1", label: "Table 1 – Head Table",
     pos: { left: 490, top: 28 },
     tableW: 626, tableH: 46,
     topSeats: 17, botSeats: 17,
     leftSeats: 0, rightSeats: 0,
+    blocks: 5,
   },
-  // ── Table 2: La Moutonne City — top left, 5+5 = 10 ──────────
+  // ── Table 2: La Moutonne City — top-left, 5+5=10 ─────────────
+  // 1 block × (3+3) + 2+2 ends = 10
   {
-    id: "t2", label: "Table 2 – La Moutonne City",
+    id: "t2", label: "Table 2 – La Moutonne City (10)",
     pos: { left: 40, top: 28 },
-    tableW: 182, tableH: 40,
+    tableW: 220, tableH: 40,
     topSeats: 5, botSeats: 5,
     leftSeats: 0, rightSeats: 0,
+    blocks: 1,
   },
-  // ── Table 3: French Warriors — mid left, 12+12+1+1 = 26 ─────
+  // ── Table 3: French Warriors — mid-left, 12+12+1+1=26 ─────────
+  // 4 blocks × (3+3) + 1+1 ends = 26
   {
-    id: "t3", label: "Table 3 – French Warriors",
+    id: "t3", label: "Table 3 – Les Fêtards Français",
     pos: { left: 8, top: 248 },
     tableW: 478, tableH: 40,
     topSeats: 12, botSeats: 12,
     leftSeats: 1, rightSeats: 1,
+    blocks: 4,
   },
-  // ── Table 4: Young Frenchies — lower left, 12+11 = 23 ───────
+  // ── Table 8: Americans — left col below T3, 12+12=24 ──────────
+  // 4 blocks × (3+3) = 24 (no end caps — head-style table)
   {
-    id: "t4", label: "Table 4 – Young Frenchies / Internationals",
+    id: "t8", label: "Table 4 – Americans (24)",
     pos: { left: 40, top: 468 },
     tableW: 441, tableH: 40,
-    topSeats: 12, botSeats: 11,
+    topSeats: 12, botSeats: 12,
     leftSeats: 0, rightSeats: 0,
+    blocks: 4,
   },
-  // ── Table 5: Long lost cousins — bottom left, 8+8 = 16 ──────
+  // ── Table 6: Kids Corner — top-right, 8+8=16 ──────────────────
+  // 2 blocks × (3+3) + 2+2 ends = 16
   {
-    id: "t5", label: "Table 5 – Long lost cousins",
-    pos: { left: 110, top: 672 },
-    tableW: 293, tableH: 40,
-    topSeats: 8, botSeats: 8,
-    leftSeats: 0, rightSeats: 0,
-  },
-  // ── Table 6: Kids Corner — top right, 8+8 = 16 seats ────────
-  {
-    id: "t6", label: "Table 6 – Kids Corner",
+    id: "t6", label: "Table 8 – Kids Corner",
     pos: { left: 1310, top: 28 },
     tableW: 293, tableH: 40,
     topSeats: 8, botSeats: 8,
     leftSeats: 0, rightSeats: 0,
+    blocks: 2,
     note: "12 chairs, no specific seating",
   },
-  // ── Table 7: Germans — mid right, 12+12 = 24 ────────────────
+  // ── Table 7: Germans — mid-right, 12+12=24 ────────────────────
+  // 4 blocks × (3+3) = 24
   {
-    id: "t7", label: "Table 7 – Germans",
+    id: "t7", label: "Table 7 – Germans (24)",
     pos: { left: 1175, top: 248 },
     tableW: 441, tableH: 40,
     topSeats: 12, botSeats: 12,
     leftSeats: 0, rightSeats: 0,
+    blocks: 4,
   },
-  // ── Table 8: Americans — lower right, 12+12 = 24 ────────────
+  // ── Table 4: Young Frenchies — right col below Germans, 12+11=23 ─
+  // 3 blocks × (3+3) + 2+2 ends = 22+... approx 4 blocks
   {
-    id: "t8", label: "Table 8 – Americans",
+    id: "t4", label: "Table 6 – Young Frenchies / Internationals (23)",
     pos: { left: 1175, top: 468 },
     tableW: 441, tableH: 40,
-    topSeats: 12, botSeats: 12,
+    topSeats: 12, botSeats: 11,
     leftSeats: 0, rightSeats: 0,
+    blocks: 4,
+  },
+  // ── Table 5: Long lost cousins — bottom-right, 8+8=16 ─────────
+  // 2 blocks × (3+3) + 2+2 ends = 16
+  {
+    id: "t5", label: "Table 5 – Long lost cousins (16)",
+    pos: { left: 1310, top: 672 },
+    tableW: 293, tableH: 40,
+    topSeats: 8, botSeats: 8,
+    leftSeats: 0, rightSeats: 0,
+    blocks: 2,
   },
 ];
+
+// ============================================================
+// BLOCK SYSTEM
+// Each table is made of N blocks. Each block owns its seats.
+// Seat keys: "{blockId}-top-{n}", "{blockId}-bot-{n}", "{blockId}-left", "{blockId}-right"
+// This makes seat keys stable when blocks move between tables.
+// ============================================================
+
+// Derive BLOCKS from TABLES
+// Block layout within a table:
+//   - Inner blocks: 3 top + 3 bottom seats
+//   - Left-end block (if table has leftSeats): adds left-end seat
+//   - Right-end block (if table has rightSeats): adds right-end seat
+const BLOCKS = [];
+TABLES.forEach(t => {
+  const n = t.blocks || 1;
+  for (let b = 0; b < n; b++) {
+    BLOCKS.push({
+      id:      `${t.id}_b${b}`,
+      tableId: t.id,
+      order:   b,
+      topSeats: 3,
+      botSeats: 3,
+      leftSeat:  (b === 0     && (t.leftSeats  || 0) > 0),
+      rightSeat: (b === n - 1 && (t.rightSeats || 0) > 0),
+    });
+  }
+  // Handle tables where seat counts don't divide evenly into 3-per-block
+  // The last block may have fewer seats — we'll compute per-block seats dynamically
+  // Top: spread seats across blocks; first blocks get 3, last may get remainder
+  const topSeats = t.topSeats;
+  const botSeats = t.botSeats;
+  BLOCKS.filter(b => b.tableId === t.id).forEach((b, i) => {
+    const remaining_top = topSeats - i * 3;
+    const remaining_bot = botSeats - i * 3;
+    b.topSeats = Math.min(3, Math.max(0, remaining_top));
+    b.botSeats = Math.min(3, Math.max(0, remaining_bot));
+  });
+});
 
 // ============================================================
 // STATE
 // ============================================================
 const seatingState = {}; // seatKey → guestId | null
 
-TABLES.forEach(t => {
-  const total = t.topSeats + t.botSeats + (t.leftSeats||0) + (t.rightSeats||0);
-  for (let i = 0; i < total; i++) seatingState[`${t.id}-${i}`] = null;
-});
+// Init all seat keys for all blocks
+function initSeatingState() {
+  BLOCKS.forEach(b => {
+    for (let i = 0; i < b.topSeats; i++) seatingState[`${b.id}-top-${i}`] = null;
+    for (let i = 0; i < b.botSeats; i++) seatingState[`${b.id}-bot-${i}`] = null;
+    if (b.leftSeat)  seatingState[`${b.id}-left`]  = null;
+    if (b.rightSeat) seatingState[`${b.id}-right`] = null;
+  });
+}
+initSeatingState();
+
+// Runtime block table membership (blocks can move tables)
+// blockTableMap: blockId → tableId (or null if free-floating)
+const blockTableMap = {};
+BLOCKS.forEach(b => { blockTableMap[b.id] = b.tableId; });
+
+// Free block positions (for blocks dragged off their table)
+const freeBlockPos = {}; // blockId → {left, top}
 
 let guests = GUESTS_RAW.map((g, i) => ({
   id: `g${i}`,
@@ -946,151 +1075,385 @@ let guests = GUESTS_RAW.map((g, i) => ({
 
 let dragGuestId = null;
 let dragSourceSeatKey = null;
-let dropHandled = false; // true when drop landed on a valid target
+let dropHandled = false;
 let activeFilter = 'all';
 let searchTerm = '';
 let activeTableId = null;
 
+// The block currently being dragged between tables
+let draggingBlockId = null;
+
 // ============================================================
-// BUILD FLOOR — render all tables onto #floorContainer
+// BUILD FLOOR
 // ============================================================
+function getScale() {
+  const transform = document.getElementById('floorContainer').style.transform || '';
+  const m = transform.match(/scale\(([^)]+)\)/);
+  return m ? parseFloat(m[1]) : 1;
+}
+
 function buildFloor() {
   const container = document.getElementById('floorContainer');
 
+  // Build table group wrappers
   TABLES.forEach(t => {
-    const topCount   = t.topSeats;
-    const botCount   = t.botSeats;
-    const leftCount  = t.leftSeats  || 0;
-    const rightCount = t.rightSeats || 0;
-
-    // Total seat width for top/bottom rows
-    const rowSeatWidth = topCount * SEAT_SIZE + (topCount - 1) * SEAT_GAP;
-    // Total width of the mid row: [leftSeat?] + table + [rightSeat?]
-    const midTotalWidth = t.tableW + (leftCount > 0 ? SEAT_SIZE + 4 : 0) + (rightCount > 0 ? SEAT_SIZE + 4 : 0);
-    // Wrapper width = max of row width and mid width
-    const wrapperW = Math.max(rowSeatWidth, midTotalWidth);
-
     const wrapper = document.createElement('div');
     wrapper.className = 'table-group';
     wrapper.style.left = t.pos.left + 'px';
     wrapper.style.top  = t.pos.top  + 'px';
-    wrapper.style.width = wrapperW + 'px';
     wrapper.dataset.tableId = t.id;
+    wrapper.id = `table-group-${t.id}`;
 
-    let seatIdx = 0;
+    // Drag handle hint
+    const handle = document.createElement('div');
+    handle.className = 'table-drag-handle';
+    handle.textContent = '⠿ drag table';
+    wrapper.appendChild(handle);
 
-    // ── TOP ROW ──
-    const topRow = document.createElement('div');
-    topRow.className = 'seats-row';
-    topRow.style.marginBottom = '3px';
-    // Inset top/bottom rows to align under the table portion (not over side seats)
-    if (leftCount > 0 || rightCount > 0) {
-      const inset = leftCount > 0 ? SEAT_SIZE + 4 : 0;
-      topRow.style.paddingLeft  = (leftCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
-      topRow.style.paddingRight = (rightCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
-    }
-    for (let i = 0; i < topCount; i++) {
-      topRow.appendChild(makeSeat(t.id, seatIdx++, 'top'));
-    }
-    wrapper.appendChild(topRow);
+    // Table label — double-click to rename
+    const labelEl = document.createElement('div');
+    labelEl.className = 'table-name-label';
+    labelEl.textContent = t.label;
+    labelEl.title = 'Double-click to rename';
+    labelEl.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      const current = t.label;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = current;
+      input.style.cssText = `
+        font-size:0.62rem; font-weight:600; font-family:'DM Sans',sans-serif;
+        color:var(--deep); background:var(--warm-white);
+        border:1px solid var(--gold); border-radius:3px;
+        padding:1px 4px; outline:none; width:180px;
+        text-transform:uppercase; letter-spacing:0.08em;
+      `;
+      labelEl.replaceWith(input);
+      input.focus();
+      input.select();
 
-    // ── MID ROW: [left seat] + table rect + [right seat] ──
-    const midRow = document.createElement('div');
-    midRow.className = 'table-mid-row';
-    midRow.style.gap = '4px';
+      const commit = () => {
+        const newName = input.value.trim() || current;
+        t.label = newName;
+        // Update block rect label inside the table too
+        const rectsRow = document.querySelector(`#table-group-${t.id} .table-rect`);
+        if (rectsRow) {
+          const firstBlock = rectsRow.querySelector('.table-block');
+          if (firstBlock) {
+            let lbl = firstBlock.querySelector('.table-block-label');
+            if (lbl) lbl.textContent = newName;
+          }
+        }
+        labelEl.textContent = newName;
+        input.replaceWith(labelEl);
+        saveState();
+      };
 
-    if (leftCount > 0) {
-      for (let i = 0; i < leftCount; i++) {
-        const ls = makeSeat(t.id, seatIdx++, 'left');
-        ls.style.flexShrink = '0';
-        midRow.appendChild(ls);
-      }
-    }
+      input.addEventListener('blur', commit);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); commit(); }
+        if (e.key === 'Escape') { input.value = current; commit(); }
+      });
+    });
+    wrapper.appendChild(labelEl);
 
-    const tableRect = document.createElement('div');
-    tableRect.className = 'table-rect';
-    tableRect.style.width = t.tableW + 'px';
-    tableRect.style.height = (t.tableH || 38) + 'px';
-    tableRect.style.flexShrink = '0';
-    tableRect.textContent = t.label;
-    tableRect.addEventListener('click', () => showTableDetail(t.id));
-    midRow.appendChild(tableRect);
-
-    if (rightCount > 0) {
-      for (let i = 0; i < rightCount; i++) {
-        const rs = makeSeat(t.id, seatIdx++, 'right');
-        rs.style.flexShrink = '0';
-        midRow.appendChild(rs);
-      }
-    }
-
-    wrapper.appendChild(midRow);
-
-    // ── BOTTOM ROW ──
-    if (botCount > 0) {
-      const botRow = document.createElement('div');
-      botRow.className = 'seats-row';
-      botRow.style.marginTop = '3px';
-      if (leftCount > 0 || rightCount > 0) {
-        botRow.style.paddingLeft  = (leftCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
-        botRow.style.paddingRight = (rightCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
-      }
-      for (let i = 0; i < botCount; i++) {
-        botRow.appendChild(makeSeat(t.id, seatIdx++, 'bottom'));
-      }
-      wrapper.appendChild(botRow);
-    }
-
-    // Kids Corner note label
-    if (t.note) {
-      const noteEl = document.createElement('div');
-      noteEl.style.cssText = 'font-size:0.58rem;color:#bbb;text-align:right;margin-top:2px;font-style:italic;';
-      noteEl.textContent = t.note;
-      wrapper.appendChild(noteEl);
-    }
+    // Content: rows of seats + block rects
+    const content = buildTableContent(t.id);
+    wrapper.appendChild(content);
 
     container.appendChild(wrapper);
-  });
-
-  // Seat count labels in left margin (matching image numbers)
-  const labelData = [
-    { id: 't1', text: '34', side: 'top' },
-    { id: 't2', text: '10', side: 'left' },
-    { id: 't3', text: '26', side: 'left' },
-    { id: 't4', text: '23', side: 'left' },
-    { id: 't5', text: '16', side: 'left' },
-    { id: 't7', text: '24', side: 'right' },
-    { id: 't8', text: '24', side: 'right' },
-  ];
-  labelData.forEach(ld => {
-    const tbl = TABLES.find(t => t.id === ld.id);
-    if (!tbl) return;
-    const lbl = document.createElement('div');
-    lbl.className = 'seat-count-label';
-    lbl.textContent = ld.text;
-    // Position roughly to the left of each table group
-    if (ld.side === 'left') {
-      lbl.style.left = (tbl.pos.left - 22) + 'px';
-      lbl.style.top  = (tbl.pos.top + tbl.tableH / 2 + SEAT_SIZE + 3) + 'px';
-    } else if (ld.side === 'right') {
-      lbl.style.left = (tbl.pos.left - 22) + 'px';
-      lbl.style.top  = (tbl.pos.top + tbl.tableH / 2 + SEAT_SIZE + 3) + 'px';
-    } else {
-      // top label above table 1
-      lbl.style.left = (tbl.pos.left + tbl.tableW / 2) + 'px';
-      lbl.style.top  = (tbl.pos.top - 14) + 'px';
-    }
-    document.getElementById('floorContainer').appendChild(lbl);
+    makeDraggableTable(wrapper, t);
   });
 }
 
-function makeSeat(tableId, idx, side) {
+function buildTableContent(tableId) {
+  const t = TABLES.find(x => x.id === tableId);
+  const blocks = BLOCKS.filter(b => blockTableMap[b.id] === tableId)
+                       .sort((a, b) => a.order - b.order);
+
+  const content = document.createElement('div');
+  content.className = 'table-content';
+  content.dataset.tableId = tableId;
+
+  if (blocks.length === 0) {
+    content.style.minWidth = '80px';
+    content.style.minHeight = '30px';
+    return content;
+  }
+
+  // Precise block width: 3 seats + 2 gaps between them
+  const BLOCK_W = 3 * SEAT_SIZE + 2 * SEAT_GAP; // = 108px
+  const BLOCK_BORDER = 1; // 1px divider between blocks
+  const END_SEAT_GAP = 4; // gap between end seat and table rect
+
+  const hasLeft  = blocks[0].leftSeat;
+  const hasRight = blocks[blocks.length - 1].rightSeat;
+
+  // Total table rect width: sum of block widths + dividers between them
+  const tableRectW = blocks.length * BLOCK_W + (blocks.length - 1) * BLOCK_BORDER;
+  // Total content width including end seats
+  const endW = (hasLeft ? SEAT_SIZE + END_SEAT_GAP : 0) + (hasRight ? SEAT_SIZE + END_SEAT_GAP : 0);
+  const totalW = tableRectW + endW;
+
+  content.style.width = totalW + 'px';
+
+  // ── TOP ROW ──
+  const topRow = document.createElement('div');
+  topRow.className = 'seats-row';
+  topRow.style.cssText = `
+    display:flex; gap:${SEAT_GAP}px; margin-bottom:3px;
+    padding-left:${hasLeft ? SEAT_SIZE + END_SEAT_GAP : 0}px;
+    padding-right:${hasRight ? SEAT_SIZE + END_SEAT_GAP : 0}px;
+    width:${totalW}px; box-sizing:border-box;
+  `;
+
+  blocks.forEach((b, bi) => {
+    for (let i = 0; i < b.topSeats; i++) {
+      const seat = makeSeat(`${b.id}-top-${i}`, 'top', b.id);
+      // Block gap: add right margin after last seat of each block (except final block)
+      if (i === b.topSeats - 1 && bi < blocks.length - 1) {
+        seat.style.marginRight = (BLOCK_BORDER + SEAT_GAP) + 'px';
+      }
+      topRow.appendChild(seat);
+    }
+  });
+  content.appendChild(topRow);
+
+  // ── MID ROW ──
+  const midRow = document.createElement('div');
+  midRow.className = 'table-mid-row';
+  midRow.style.cssText = `display:flex; align-items:center; gap:0; width:${totalW}px;`;
+
+  if (hasLeft) {
+    const ls = makeSeat(`${blocks[0].id}-left`, 'left', blocks[0].id);
+    ls.style.cssText += `flex-shrink:0; margin-right:${END_SEAT_GAP}px;`;
+    midRow.appendChild(ls);
+  }
+
+  // Table rect: exactly tableRectW wide, divided into equal block segments
+  const rectsRow = document.createElement('div');
+  rectsRow.className = 'table-rect';
+  rectsRow.style.cssText = `width:${tableRectW}px; height:${t.tableH || 38}px; flex-shrink:0;`;
+  rectsRow.addEventListener('click', () => showTableDetail(tableId));
+
+  blocks.forEach((b, bi) => {
+    const seg = document.createElement('div');
+    seg.className = 'table-block';
+    seg.dataset.blockId = b.id;
+    seg.title = 'Drag to move this block';
+    // Each block segment is exactly BLOCK_W wide
+    seg.style.cssText = `width:${BLOCK_W}px; flex-shrink:0; flex-grow:0;`;
+    const dragIcon = document.createElement('span');
+    dragIcon.style.cssText = 'font-size:10px;opacity:0.4;cursor:grab;user-select:none;';
+    dragIcon.textContent = '⠿';
+    seg.appendChild(dragIcon);
+    rectsRow.appendChild(seg);
+    makeBlockDraggable(seg, b);
+  });
+
+  midRow.appendChild(rectsRow);
+
+  if (hasRight) {
+    const rs = makeSeat(`${blocks[blocks.length-1].id}-right`, 'right', blocks[blocks.length-1].id);
+    rs.style.cssText += `flex-shrink:0; margin-left:${END_SEAT_GAP}px;`;
+    midRow.appendChild(rs);
+  }
+  content.appendChild(midRow);
+
+  // ── BOTTOM ROW ──
+  const botRow = document.createElement('div');
+  botRow.className = 'seats-row';
+  botRow.style.cssText = `
+    display:flex; gap:${SEAT_GAP}px; margin-top:3px;
+    padding-left:${hasLeft ? SEAT_SIZE + END_SEAT_GAP : 0}px;
+    padding-right:${hasRight ? SEAT_SIZE + END_SEAT_GAP : 0}px;
+    width:${totalW}px; box-sizing:border-box;
+  `;
+
+  blocks.forEach((b, bi) => {
+    for (let i = 0; i < b.botSeats; i++) {
+      const seat = makeSeat(`${b.id}-bot-${i}`, 'bottom', b.id);
+      if (i === b.botSeats - 1 && bi < blocks.length - 1) {
+        seat.style.marginRight = (BLOCK_BORDER + SEAT_GAP) + 'px';
+      }
+      botRow.appendChild(seat);
+    }
+  });
+  content.appendChild(botRow);
+
+  return content;
+}
+
+function rebuildTableContent(tableId) {
+  const wrapper = document.getElementById(`table-group-${tableId}`);
+  if (!wrapper) return;
+  const old = wrapper.querySelector('.table-content');
+  if (old) old.remove();
+  const content = buildTableContent(tableId);
+  wrapper.appendChild(content);
+  // Re-refresh all seats for this table
+  BLOCKS.filter(b => blockTableMap[b.id] === tableId).forEach(b => {
+    Object.keys(seatingState)
+      .filter(k => k.startsWith(b.id))
+      .forEach(k => refreshSeatUI(k));
+  });
+}
+
+// ============================================================
+// BLOCK DRAGGING (between tables)
+// ============================================================
+function makeBlockDraggable(segEl, block) {
+  let isDragging = false;
+  let ghost = null;
+
+  segEl.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    isDragging = true;
+    draggingBlockId = block.id;
+    e.stopPropagation(); // don't trigger table drag
+
+    // Create a visual ghost
+    ghost = document.createElement('div');
+    ghost.style.cssText = `
+      position:fixed; pointer-events:none; z-index:9999;
+      background:var(--table-bg); color:white; border-radius:4px;
+      padding:4px 10px; font-size:0.7rem; font-family:'DM Sans',sans-serif;
+      opacity:0.85; box-shadow:0 4px 16px rgba(0,0,0,0.25);
+    `;
+    ghost.textContent = `Block from ${TABLES.find(t=>t.id===blockTableMap[block.id])?.label || ''}`;
+    document.body.appendChild(ghost);
+    ghost.style.left = e.clientX + 10 + 'px';
+    ghost.style.top  = e.clientY + 10 + 'px';
+
+    // Highlight valid drop targets
+    document.querySelectorAll('.table-group').forEach(tg => {
+      if (tg.dataset.tableId !== blockTableMap[block.id]) {
+        tg.classList.add('block-drop-target-possible');
+      }
+    });
+
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging || !ghost) return;
+    ghost.style.left = e.clientX + 10 + 'px';
+    ghost.style.top  = e.clientY + 10 + 'px';
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (!isDragging) return;
+    isDragging = false;
+    if (ghost) { ghost.remove(); ghost = null; }
+    document.querySelectorAll('.block-drop-target-possible, .block-drop-hover')
+      .forEach(el => el.classList.remove('block-drop-target-possible', 'block-drop-hover'));
+
+    // Find which table group we dropped onto
+    const els = document.elementsFromPoint(e.clientX, e.clientY);
+    let targetTableId = null;
+    for (const el of els) {
+      const tg = el.closest('.table-group');
+      if (tg && tg.dataset.tableId !== blockTableMap[block.id]) {
+        targetTableId = tg.dataset.tableId;
+        break;
+      }
+    }
+
+    if (targetTableId) {
+      moveBlockToTable(block.id, targetTableId);
+    }
+    draggingBlockId = null;
+  });
+
+  // Hover highlight
+  document.querySelectorAll('.table-group').forEach(tg => {
+    tg.addEventListener('mouseenter', () => {
+      if (isDragging && tg.dataset.tableId !== blockTableMap[block.id]) {
+        tg.classList.add('block-drop-hover');
+      }
+    });
+    tg.addEventListener('mouseleave', () => {
+      tg.classList.remove('block-drop-hover');
+    });
+  });
+}
+
+function moveBlockToTable(blockId, newTableId) {
+  const block = BLOCKS.find(b => b.id === blockId);
+  if (!block) return;
+  const oldTableId = blockTableMap[blockId];
+  if (oldTableId === newTableId) return;
+
+  // Move block
+  const targetBlocks = BLOCKS.filter(b => blockTableMap[b.id] === newTableId);
+  block.order = targetBlocks.length; // append at end
+  blockTableMap[blockId] = newTableId;
+
+  // Re-order remaining blocks in old table
+  BLOCKS.filter(b => blockTableMap[b.id] === oldTableId)
+        .sort((a,b) => a.order - b.order)
+        .forEach((b, i) => { b.order = i; });
+
+  // Rebuild both tables
+  rebuildTableContent(oldTableId);
+  rebuildTableContent(newTableId);
+
+  renderGuestList();
+  saveState();
+}
+
+// ============================================================
+// DRAGGABLE TABLE GROUPS
+// ============================================================
+function makeDraggableTable(wrapper, tableConfig) {
+  let isDragging = false;
+  let startMouseX, startMouseY, startLeft, startTop;
+
+  wrapper.addEventListener('mousedown', e => {
+    const onSeat  = e.target.closest('.seat');
+    const onBlock = e.target.closest('.table-block');
+    if (e.button !== 0 || onSeat || onBlock) return;
+
+    isDragging = true;
+    startMouseX = e.clientX;
+    startMouseY = e.clientY;
+    startLeft   = parseInt(wrapper.style.left) || 0;
+    startTop    = parseInt(wrapper.style.top)  || 0;
+    wrapper.classList.add('dragging-table');
+    e.preventDefault();
+    e.stopPropagation();
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    const s = getScale();
+    const newLeft = Math.max(0, startLeft + (e.clientX - startMouseX) / s);
+    const newTop  = Math.max(0, startTop  + (e.clientY - startMouseY) / s);
+    wrapper.style.left = newLeft + 'px';
+    wrapper.style.top  = newTop  + 'px';
+    tableConfig.pos.left = newLeft;
+    tableConfig.pos.top  = newTop;
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      wrapper.classList.remove('dragging-table');
+    }
+  });
+}
+
+// ============================================================
+// MAKE SEAT
+// seatKey is the full key e.g. "t3_b0-top-2"
+// ============================================================
+function makeSeat(seatKey, side, blockId) {
   const seat = document.createElement('div');
   seat.className = 'seat';
   seat.dataset.side = side;
-  seat.dataset.tableId = tableId;
-  seat.dataset.seatIdx = idx;
-  seat.id = `seat-${tableId}-${idx}`;
+  seat.dataset.seatKey = seatKey;
+  seat.dataset.blockId = blockId;
+  seat.id = `seat-${seatKey}`;
 
   const initialsEl = document.createElement('span');
   initialsEl.className = 'seat-initials';
@@ -1103,7 +1466,6 @@ function makeSeat(tableId, idx, side) {
 
   // Drag FROM seat
   seat.addEventListener('dragstart', e => {
-    const seatKey = `${tableId}-${idx}`;
     const gId = seatingState[seatKey];
     if (!gId) { e.preventDefault(); return; }
     dragGuestId = gId;
@@ -1119,19 +1481,14 @@ function makeSeat(tableId, idx, side) {
   seat.addEventListener('dragend', () => {
     seat.classList.remove('dragging-out');
     document.getElementById('dragGhost').style.display = 'none';
-    // Only remove if no valid drop target received the guest
-    if (!dropHandled && dragSourceSeatKey) {
-      removeGuestFromSeat(dragSourceSeatKey);
-    }
+    if (!dropHandled && dragSourceSeatKey) removeGuestFromSeat(dragSourceSeatKey);
     dragGuestId = null;
     dragSourceSeatKey = null;
     dropHandled = false;
   });
 
-  // Make seat draggable only when occupied
   seat.draggable = true;
 
-  // Drop FROM guest list or another seat
   seat.addEventListener('dragover', e => { e.preventDefault(); seat.classList.add('drop-target'); });
   seat.addEventListener('dragleave', () => seat.classList.remove('drop-target'));
   seat.addEventListener('drop', e => {
@@ -1139,14 +1496,12 @@ function makeSeat(tableId, idx, side) {
     seat.classList.remove('drop-target');
     if (dragGuestId) {
       dropHandled = true;
-      assignGuestToSeat(dragGuestId, `${tableId}-${idx}`);
+      assignGuestToSeat(dragGuestId, seatKey);
     }
   });
 
-  // Right click still works as fallback
   seat.addEventListener('contextmenu', e => {
     e.preventDefault();
-    const seatKey = `${tableId}-${idx}`;
     const gId = seatingState[seatKey];
     if (gId) showContextMenu(e, seatKey, gId);
   });
@@ -1280,8 +1635,7 @@ function removeGuestFromSeat(seatKey) {
 }
 
 function refreshSeatUI(seatKey) {
-  const [tableId, idx] = seatKey.split('-');
-  const seatEl = document.getElementById(`seat-${tableId}-${idx}`);
+  const seatEl = document.getElementById(`seat-${seatKey}`);
   if (!seatEl) return;
   const gId = seatingState[seatKey];
   const initialsEl = seatEl.querySelector('.seat-initials');
@@ -1291,7 +1645,6 @@ function refreshSeatUI(seatKey) {
     seatEl.classList.add('occupied');
     seatEl.classList.remove('female', 'male');
     seatEl.classList.add(g.gender === 'f' ? 'female' : 'male');
-    // Show full name inside circle (wraps if needed)
     const nameParts = g.name.split(' ');
     initialsEl.textContent = nameParts.length >= 2
       ? nameParts[0] + '\n' + nameParts.slice(1).join(' ')
@@ -1312,25 +1665,36 @@ function showTableDetail(tableId) {
   activeTableId = tableId;
   const tbl = TABLES.find(t => t.id === tableId);
   const content = document.getElementById('detailContent');
-  const total = tbl.topSeats + tbl.botSeats + (tbl.leftSeats||0) + (tbl.rightSeats||0);
-  const occupied = Object.entries(seatingState)
-    .filter(([k, v]) => k.startsWith(tableId + '-') && v)
-    .length;
+
+  // Get all seat keys belonging to this table (via blocks)
+  const tableBlocks = BLOCKS.filter(b => blockTableMap[b.id] === tableId);
+  const tableSeats = tableBlocks.flatMap(b =>
+    Object.keys(seatingState).filter(k => k.startsWith(b.id + '-'))
+  );
+  const total    = tableSeats.length;
+  const occupied = tableSeats.filter(k => seatingState[k]).length;
 
   let html = `<div class="table-detail-header">
     <h3>${tbl.label}</h3>
     <p>${occupied} / ${total} seats filled</p>
-  </div><div class="seated-list">`;
+  </div>
+  <div style="padding:8px 12px;border-bottom:1px solid var(--light);">
+    <button id="clearTableBtn" style="
+      width:100%;padding:5px 0;font-size:0.7rem;
+      border:1px solid var(--dusty-rose);border-radius:5px;
+      background:transparent;color:var(--dusty-rose);
+      cursor:pointer;font-family:'DM Sans',sans-serif;
+      transition:all 0.12s;
+    ">Clear all seats at this table</button>
+  </div>
+  <div class="seated-list">`;
 
-  const keys = Object.keys(seatingState).filter(k => k.startsWith(tableId + '-'));
-  keys.forEach(k => {
+  tableSeats.forEach(k => {
     const gId = seatingState[k];
     if (!gId) return;
     const g = guests.find(x => x.id === gId);
-    const seatNum = parseInt(k.split('-')[1]) + 1;
     html += `<div class="seated-person">
       <span>${g.name}</span>
-      <span class="seat-num">#${seatNum}</span>
       <button class="remove-btn" data-key="${k}" title="Remove">×</button>
     </div>`;
   });
@@ -1341,6 +1705,25 @@ function showTableDetail(tableId) {
 
   content.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', () => removeGuestFromSeat(btn.dataset.key));
+  });
+
+  const clearBtn = document.getElementById('clearTableBtn');
+  clearBtn.addEventListener('mouseenter', () => { clearBtn.style.background = 'var(--dusty-rose)'; clearBtn.style.color = 'white'; });
+  clearBtn.addEventListener('mouseleave', () => { clearBtn.style.background = 'transparent'; clearBtn.style.color = 'var(--dusty-rose)'; });
+  clearBtn.addEventListener('click', () => {
+    const count = tableSeats.filter(k => seatingState[k]).length;
+    if (count === 0) return;
+    if (!confirm(`Remove all ${count} guests from ${tbl.label}?`)) return;
+    tableSeats.filter(k => seatingState[k]).forEach(k => {
+      const gId = seatingState[k];
+      const g = guests.find(x => x.id === gId);
+      if (g) { g.seated = false; g.seatKey = null; }
+      seatingState[k] = null;
+      refreshSeatUI(k);
+    });
+    renderGuestList();
+    showTableDetail(tableId);
+    saveState();
   });
 }
 
@@ -1415,35 +1798,46 @@ document.querySelectorAll('.filter-tab').forEach(btn => {
 // AUTO-SEAT: pre-populate guests into their suggested tables
 // ============================================================
 function autoSeatGuests() {
-  // ── Table 3: French Warriors — precise arrangement ──────────
-  // Seat index order: top 0-11, left-end=12, right-end=13, bottom 14-25
-  const t3Order = [
-    // top row positions 0-11
-    "Caroline Ferber", "Ben Marshall", "Jocelyne Simonet", "Gérard Gay",
-    "Laurence Bernard", "Gabriel Soudry", "Nathalie Kerfridin", "David Nes",
-    "Frédérica Roquebert", "Xavier Rollin", "Valerie Coriatt", "William Assouline",
-    // left end (index 12)
-    "Luc Teboul",
-    // right end (index 13)
-    "Caroline Prati",
-    // bottom row positions 14-25
-    "Bob Ferber", "Magali Cayol", "Jean-Yves Simonet", "Ailsa Marshall",
-    "Laurent Bernard", "Christine Soudry", "Laurent Kerfridin", "Eugenie Nes",
-    "Pierre-Olivier Roquebert", "Ariane Regnier", "Andreas Stein", "Réjane Rollin",
+  // ── Table 3 (t3): precise arrangement ──────────────────────
+  // Blocks: t3_b0, t3_b1, t3_b2, t3_b3 (4 blocks, left end on b0, right end on b3)
+  // Seat key format: {blockId}-top-{0,1,2}, {blockId}-bot-{0,1,2}, {blockId}-left, {blockId}-right
+  // Full order matching previous layout:
+  // top row L→R: b0-top-0..2, b1-top-0..2, b2-top-0..2, b3-top-0..2  (12 seats)
+  // left end: b0-left
+  // right end: b3-right
+  // bot row L→R: b0-bot-0..2, b1-bot-0..2, b2-bot-0..2, b3-bot-0..2  (12 seats)
+  const t3Seats = [
+    't3_b0-top-0','t3_b0-top-1','t3_b0-top-2',
+    't3_b1-top-0','t3_b1-top-1','t3_b1-top-2',
+    't3_b2-top-0','t3_b2-top-1','t3_b2-top-2',
+    't3_b3-top-0','t3_b3-top-1','t3_b3-top-2',
+    't3_b0-left',
+    't3_b3-right',
+    't3_b0-bot-0','t3_b0-bot-1','t3_b0-bot-2',
+    't3_b1-bot-0','t3_b1-bot-1','t3_b1-bot-2',
+    't3_b2-bot-0','t3_b2-bot-1','t3_b2-bot-2',
+    't3_b3-bot-0','t3_b3-bot-1','t3_b3-bot-2',
   ];
-
-  t3Order.forEach((name, idx) => {
+  const t3Names = [
+    "Caroline Ferber","Ben Marshall","Jocelyne Simonet","Gérard Gay",
+    "Laurence Bernard","Gabriel Soudry","Nathalie Kerfridin","David Nes",
+    "Frédérica Roquebert","Xavier Rollin","Valerie Coriatt","William Assouline",
+    "Luc Teboul",
+    "Caroline Prati",
+    "Bob Ferber","Magali Cayol","Jean-Yves Simonet","Ailsa Marshall",
+    "Laurent Bernard","Christine Soudry","Laurent Kerfridin","Eugenie Nes",
+    "Pierre-Olivier Roquebert","Ariane Regnier","Andreas Stein","Réjane Rollin",
+  ];
+  t3Names.forEach((name, i) => {
     const guest = guests.find(g => g.name === name);
-    if (!guest) return;
-    const seatKey = `t3-${idx}`;
-    if (seatingState[seatKey] === null) {
-      seatingState[seatKey] = guest.id;
-      guest.seated = true;
-      guest.seatKey = seatKey;
-    }
+    const key   = t3Seats[i];
+    if (!guest || seatingState[key] === undefined) return;
+    seatingState[key] = guest.id;
+    guest.seated = true;
+    guest.seatKey = key;
   });
 
-  // ── All other tables: auto-fill in guest list order ─────────
+  // ── All other tables: fill in guest-list order ──────────────
   const tableMap = {
     "Table 1 - Head Table":                      "t1",
     "Table 2 - La Moutonne City":                "t2",
@@ -1454,10 +1848,14 @@ function autoSeatGuests() {
     "Table 8 - Americans":                       "t8",
   };
   guests.forEach(g => {
-    if (g.seated) return; // already placed (Table 3)
+    if (g.seated) return;
     const tId = tableMap[g.suggestedTable];
     if (!tId) return;
-    const emptyKey = Object.keys(seatingState).find(k => k.startsWith(tId + '-') && seatingState[k] === null);
+    // Find first empty seat in any block belonging to this table
+    const tableBlockIds = BLOCKS.filter(b => blockTableMap[b.id] === tId).map(b => b.id);
+    const emptyKey = Object.keys(seatingState).find(k =>
+      tableBlockIds.some(bid => k.startsWith(bid + '-')) && seatingState[k] === null
+    );
     if (emptyKey) {
       seatingState[emptyKey] = g.id;
       g.seated = true;
@@ -1468,10 +1866,80 @@ function autoSeatGuests() {
 
 
 // ============================================================
+// SAVE / LOAD  (localStorage)
+// ============================================================
+const SAVE_KEY = 'seatingChart_v1';
+
+function saveState() {
+  const saved = {};
+  Object.entries(seatingState).forEach(([key, gId]) => {
+    if (gId) {
+      const g = guests.find(x => x.id === gId);
+      if (g) saved[key] = g.name;
+    }
+  });
+  // Also save custom table names
+  const tableNames = {};
+  TABLES.forEach(t => { tableNames[t.id] = t.label; });
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saved));
+    localStorage.setItem(SAVE_KEY + '_names', JSON.stringify(tableNames));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    // Restore custom table names
+    const namesRaw = localStorage.getItem(SAVE_KEY + '_names');
+    if (namesRaw) {
+      const tableNames = JSON.parse(namesRaw);
+      TABLES.forEach(t => {
+        if (tableNames[t.id]) t.label = tableNames[t.id];
+      });
+    }
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const saved = JSON.parse(raw);
+    let anyLoaded = false;
+    Object.entries(saved).forEach(([key, name]) => {
+      const g = guests.find(x => x.name === name);
+      if (!g || seatingState[key] === undefined) return;
+      if (g.seatKey) seatingState[g.seatKey] = null;
+      seatingState[key] = g.id;
+      g.seated = true;
+      g.seatKey = key;
+      anyLoaded = true;
+    });
+    return anyLoaded;
+  } catch(e) { return false; }
+}
+
+function clearSavedState() {
+  try { localStorage.removeItem(SAVE_KEY); } catch(e) {}
+}
+
+// Patch assign/remove to auto-save after every change
+const _origAssign = assignGuestToSeat;
+assignGuestToSeat = function(guestId, seatKey) {
+  _origAssign(guestId, seatKey);
+  saveState();
+};
+const _origRemove = removeGuestFromSeat;
+removeGuestFromSeat = function(seatKey) {
+  _origRemove(seatKey);
+  saveState();
+};
+
+// ============================================================
 // INIT
 // ============================================================
 buildFloor();
-autoSeatGuests();
+
+const hasSaved = loadState();
+if (!hasSaved) {
+  autoSeatGuests();
+}
+
 Object.entries(seatingState).forEach(([key, gId]) => {
   if (gId) refreshSeatUI(key);
 });
