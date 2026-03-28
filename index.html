@@ -6,525 +6,559 @@
 <title>Wedding Seating Chart</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cream: #faf7f2;
-    --warm-white: #fff9f0;
-    --sage: #7a9e7e;
-    --dusty-rose: #c4837a;
-    --gold: #c9a84c;
-    --deep: #2c2416;
-    --mid: #6b5c3e;
-    --light: #e8dcc8;
-    --table-bg: #2c6e8a;
-    --table-hover: #1e5470;
-    --chair-color: #2c6e8a;
-    --chair-seated: #7a9e7e;
-    --shadow: 0 4px 24px rgba(44,36,22,0.10);
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--cream);
-    color: var(--deep);
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  header {
-    background: var(--warm-white);
-    border-bottom: 1px solid var(--light);
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-shrink: 0;
-    z-index: 100;
-  }
-
-  header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.4rem;
-    color: var(--deep);
-    font-style: italic;
-  }
-
-  .stats {
-    display: flex;
-    gap: 20px;
-    font-size: 0.78rem;
-    color: var(--mid);
-  }
-
-  .stat span { font-weight: 600; color: var(--deep); }
-
-  .app-body {
-    display: flex;
-    flex: 1;
-    overflow: hidden;
-  }
-
-  /* LEFT PANEL - Guest List */
-  .guest-panel {
-    width: 260px;
-    background: var(--warm-white);
-    border-right: 1px solid var(--light);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-
-  .panel-header {
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--light);
-    background: var(--cream);
-  }
-
-  .panel-header h2 {
-    font-size: 0.7rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--mid);
-    margin-bottom: 8px;
-    font-weight: 500;
-  }
-
-  .search-box {
-    width: 100%;
-    padding: 6px 10px;
-    border: 1px solid var(--light);
-    border-radius: 6px;
-    background: var(--warm-white);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.8rem;
-    color: var(--deep);
-    outline: none;
-  }
-
-  .search-box:focus { border-color: var(--sage); }
-
-  .filter-tabs {
-    display: flex;
-    gap: 4px;
-    margin-top: 8px;
-  }
-
-  .filter-tab {
-    flex: 1;
-    padding: 4px 0;
-    font-size: 0.7rem;
-    border: 1px solid var(--light);
-    border-radius: 4px;
-    background: transparent;
-    cursor: pointer;
-    color: var(--mid);
-    font-family: 'DM Sans', sans-serif;
-    transition: all 0.15s;
-  }
-
-  .filter-tab.active { background: var(--deep); color: white; border-color: var(--deep); }
-
-  .guest-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px 0;
-  }
-
-  .guest-item {
-    padding: 7px 16px;
-    cursor: grab;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    border-left: 3px solid transparent;
-    transition: all 0.12s;
-    user-select: none;
-  }
-
-  .guest-item:hover { background: var(--light); border-left-color: var(--gold); }
-  .guest-item.seated { opacity: 0.45; }
-  .guest-item.dragging { opacity: 0.3; }
-
-  .guest-name {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: var(--deep);
-  }
-
-  .guest-meta {
-    font-size: 0.68rem;
-    color: var(--mid);
-  }
-
-  .diet-badge {
-    display: inline-block;
-    font-size: 0.6rem;
-    padding: 1px 5px;
-    border-radius: 3px;
-    background: var(--light);
-    color: var(--mid);
-    margin-top: 2px;
-  }
-
-  .diet-badge.veg { background: #d4edda; color: #2d6a4f; }
-  .diet-badge.allergy { background: #fff3cd; color: #856404; }
-
-  /* FLOOR PLAN */
-  .floor-plan-area {
-    flex: 1;
-    overflow: auto;
-    padding: 24px;
-    background: var(--cream);
-    position: relative;
-  }
-
-  .floor-container {
-    position: relative;
-    width: 1160px;
-    min-height: 650px;
-    background: var(--warm-white);
-    border: 1px solid var(--light);
-    border-radius: 12px;
-    box-shadow: var(--shadow);
-    margin: 0 auto;
-  }
-
-  /* Room label */
-  .room-label {
-    position: absolute;
-    font-size: 0.6rem;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: #bbb;
-    font-weight: 500;
-  }
-
-  /* Dancefloor */
-  .dancefloor {
-    position: absolute;
-    background: linear-gradient(135deg, #d4a574 0%, #c49060 50%, #b8844e 100%);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.15);
-  }
-
-  .dj-booth {
-    position: absolute;
-    background: var(--table-bg);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.05em;
-  }
-
-  .entrance-marker {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 2px;
-  }
-
-  .entrance-arrow {
-    width: 0;
-    height: 0;
-    border-left: 10px solid transparent;
-    border-right: 10px solid transparent;
-    border-bottom: 14px solid var(--deep);
-  }
-
-  .entrance-label {
-    font-size: 0.65rem;
-    color: var(--mid);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  /* TABLE COMPONENT */
-  .table-group {
-    position: absolute;
-  }
-
-  .table-rect {
-    background: var(--table-bg);
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 0.72rem;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    text-align: center;
-    padding: 4px 6px;
-    line-height: 1.3;
-  }
-
-  /* SEATS */
-  .seats-row {
-    display: flex;
-    gap: 2px;
-    justify-content: center;
-  }
-
-  .seat {
-    width: 20px;
-    height: 20px;
-    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-    background: var(--chair-color);
-    opacity: 0.85;
-    cursor: pointer;
-    transition: all 0.15s;
-    position: relative;
-    flex-shrink: 0;
-    border: 2px solid transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .seat.occupied {
-    background: var(--chair-seated);
-    opacity: 1;
-  }
-
-  .seat.highlight {
-    border-color: var(--gold);
-    transform: scale(1.15);
-    opacity: 1;
-  }
-
-  .seat:hover {
-    opacity: 1;
-    transform: scale(1.1);
-    border-color: var(--gold);
-  }
-
-  .seat[data-side="bottom"] {
-    border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-  }
-
-  .seat[data-side="left"] {
-    border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%;
-  }
-
-  .seat[data-side="right"] {
-    border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%;
-  }
-
-  .seat-initials {
-    font-size: 6px;
-    font-weight: 700;
-    color: white;
-    letter-spacing: -0.5px;
-    line-height: 1;
-    pointer-events: none;
-    user-select: none;
-    text-align: center;
-    position: absolute;
-  }
-
-  /* SEAT TOOLTIP */
-  .seat-tooltip {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--deep);
-    color: white;
-    font-size: 0.68rem;
-    padding: 4px 8px;
-    border-radius: 4px;
-    white-space: nowrap;
-    z-index: 200;
-    pointer-events: none;
-  }
-
-  .seat-tooltip::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 4px solid transparent;
-    border-top-color: var(--deep);
-  }
-
-  .seat:hover .seat-tooltip,
-  .seat.occupied:hover .seat-tooltip {
-    display: block;
-  }
-
-  /* SEAT CONTEXT MENU */
-  .context-menu {
-    position: fixed;
-    background: white;
-    border: 1px solid var(--light);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    padding: 4px 0;
-    z-index: 1000;
-    min-width: 160px;
-    display: none;
-  }
-
-  .context-menu.visible { display: block; }
-
-  .context-menu-title {
-    padding: 6px 14px;
-    font-size: 0.7rem;
-    color: var(--mid);
-    border-bottom: 1px solid var(--light);
-    font-style: italic;
-  }
-
-  .context-item {
-    padding: 7px 14px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    color: var(--deep);
-    transition: background 0.1s;
-  }
-
-  .context-item:hover { background: var(--light); }
-  .context-item.danger { color: var(--dusty-rose); }
-
-  /* DROP ZONE feedback */
-  .seat.drop-target {
-    border-color: var(--sage);
-    transform: scale(1.2);
-    opacity: 1;
-    background: var(--sage);
-  }
-
-  /* DRAG GHOST */
-  .drag-ghost {
-    position: fixed;
-    background: var(--deep);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    pointer-events: none;
-    z-index: 9999;
-    display: none;
-    white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-  }
-
-  /* RIGHT PANEL - Table details */
-  .detail-panel {
-    width: 220px;
-    background: var(--warm-white);
-    border-left: 1px solid var(--light);
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    overflow: hidden;
-  }
-
-  .detail-panel .panel-header {
-    background: var(--cream);
-  }
-
-  .detail-content {
-    flex: 1;
-    overflow-y: auto;
-    padding: 0;
-  }
-
-  .detail-placeholder {
-    padding: 20px 16px;
-    text-align: center;
-    color: var(--mid);
-    font-size: 0.78rem;
-    font-style: italic;
-  }
-
-  .table-detail-header {
-    padding: 10px 16px;
-    background: var(--table-bg);
-    color: white;
-  }
-
-  .table-detail-header h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 0.9rem;
-  }
-
-  .table-detail-header p {
-    font-size: 0.7rem;
-    opacity: 0.8;
-    margin-top: 2px;
-  }
-
-  .seated-list {
-    padding: 8px 0;
-  }
-
-  .seated-person {
-    padding: 5px 16px;
-    font-size: 0.75rem;
-    color: var(--deep);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-  }
-
-  .seated-person .remove-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--dusty-rose);
-    font-size: 0.85rem;
-    line-height: 1;
-    opacity: 0.6;
-    transition: opacity 0.1s;
-  }
-
-  .seated-person .remove-btn:hover { opacity: 1; }
-
-  .seat-num {
-    font-size: 0.65rem;
-    color: var(--mid);
-    background: var(--light);
-    border-radius: 3px;
-    padding: 1px 4px;
-    flex-shrink: 0;
-  }
-
-  /* scrollbars */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--light); border-radius: 2px; }
-
-  .guest-section-header {
-    padding: 4px 16px 2px;
-    font-size: 0.63rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--gold);
-    background: var(--cream);
-    border-top: 1px solid var(--light);
-    font-weight: 600;
-  }
+:root {
+  --cream: #faf7f2;
+  --warm-white: #fff9f0;
+  --sage: #7a9e7e;
+  --dusty-rose: #c4837a;
+  --gold: #c9a84c;
+  --deep: #2c2416;
+  --mid: #6b5c3e;
+  --light: #e8dcc8;
+  --table-bg: #2c6e8a;
+  --table-hover: #1e5470;
+  --chair-color: #2c6e8a;
+  --chair-seated: #7a9e7e;
+  --chair-female: #e8889a;
+  --chair-female-seated: #d4607a;
+  --chair-male: #6aaac8;
+  --chair-male-seated: #3d85ab;
+  --shadow: 0 4px 24px rgba(44,36,22,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--cream);
+  color: var(--deep);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+header {
+  background: var(--warm-white);
+  border-bottom: 1px solid var(--light);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  z-index: 100;
+}
+header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--deep);
+  font-style: italic;
+}
+.stats {
+  display: flex;
+  gap: 20px;
+  font-size: 0.78rem;
+  color: var(--mid);
+}
+.stat span { font-weight: 600; color: var(--deep); }
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.guest-panel {
+  width: 190px;
+  background: var(--warm-white);
+  border-right: 1px solid var(--light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.22s ease;
+}
+.guest-panel.collapsed { width: 28px; }
+.guest-panel.collapsed .search-box,
+.guest-panel.collapsed .filter-tabs,
+.guest-panel.collapsed .guest-list { display: none; }
+.panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--light);
+  background: var(--cream);
+  position: relative;
+}
+.panel-toggle-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: none;
+  border: 1px solid var(--light);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--mid);
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+}
+.panel-toggle-btn:hover { background: var(--light); color: var(--deep); }
+.guest-panel .panel-toggle-btn { right: 8px; }
+.detail-panel .panel-toggle-btn { left: 8px; }
+/* Collapsed state — show only a thin strip with toggle button */
+.guest-panel.collapsed .panel-header,
+.detail-panel.collapsed .panel-header {
+  padding: 8px 4px;
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  overflow: hidden;
+}
+.guest-panel.collapsed .panel-header h2,
+.detail-panel.collapsed .panel-header h2 {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 0.62rem;
+  margin: 0;
+  white-space: nowrap;
+  color: var(--mid);
+  letter-spacing: 0.1em;
+}
+.guest-panel.collapsed .panel-toggle-btn,
+.detail-panel.collapsed .panel-toggle-btn {
+  position: static;
+  transform: none;
+}
+.panel-header h2 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--mid);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.search-box {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--light);
+  border-radius: 6px;
+  background: var(--warm-white);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  color: var(--deep);
+  outline: none;
+}
+.search-box:focus { border-color: var(--sage); }
+.filter-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+.filter-tab {
+  flex: 1;
+  padding: 4px 0;
+  font-size: 0.7rem;
+  border: 1px solid var(--light);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mid);
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.15s;
+}
+.filter-tab.active { background: var(--deep); color: white; border-color: var(--deep); }
+.guest-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.guest-item {
+  padding: 7px 16px;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 3px solid transparent;
+  transition: all 0.12s;
+  user-select: none;
+}
+.guest-item:hover { background: var(--light); border-left-color: var(--gold); }
+.guest-item.seated { opacity: 0.45; }
+.guest-item.dragging { opacity: 0.3; }
+.guest-name { font-size: 0.82rem; font-weight: 500; color: var(--deep); }
+.guest-meta { font-size: 0.68rem; color: var(--mid); }
+.diet-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--light);
+  color: var(--mid);
+  margin-top: 2px;
+}
+.diet-badge.veg { background: #d4edda; color: #2d6a4f; }
+.diet-badge.allergy { background: #fff3cd; color: #856404; }
+
+/* FLOOR PLAN */
+.floor-plan-area {
+  flex: 1;
+  overflow: hidden;
+  background: var(--cream);
+  position: relative;
+  cursor: grab;
+  user-select: none;
+}
+.floor-plan-area.panning { cursor: grabbing; }
+.floor-viewport {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+.floor-container {
+  position: absolute;
+  width: 1660px;
+  height: 840px;
+  background: var(--warm-white);
+  border: 1px solid var(--light);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transform-origin: 0 0;
+}
+/* Zoom controls */
+.zoom-controls {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 50;
+}
+.zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--warm-white);
+  border: 1px solid var(--light);
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--deep);
+  font-weight: 500;
+  transition: background 0.12s;
+  line-height: 1;
+}
+.zoom-btn:hover { background: var(--light); }
+.zoom-level {
+  width: 32px;
+  height: 24px;
+  background: var(--warm-white);
+  border: 1px solid var(--light);
+  border-radius: 6px;
+  font-size: 0.6rem;
+  color: var(--mid);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Seat count labels */
+.seat-count-label {
+  position: absolute;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--mid);
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* Dancefloor */
+.dancefloor {
+  position: absolute;
+  background: linear-gradient(160deg, #d4a574 0%, #c49060 40%, #b8844e 100%);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.15);
+}
+.dj-booth {
+  position: absolute;
+  background: var(--table-bg);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.entrance-marker {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.entrance-arrow {
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 14px solid var(--deep);
+}
+.entrance-label {
+  font-size: 0.65rem;
+  color: var(--mid);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* TABLE GROUP — absolutely positioned wrapper */
+.table-group {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* The table rectangle */
+.table-rect {
+  background: var(--table-bg);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: center;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.table-rect:hover { background: var(--table-hover); }
+
+/* Middle row: optional side seats + table */
+.table-mid-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Seat rows */
+.seats-row {
+  display: flex;
+  gap: 2px;
+  justify-content: center;
+  width: 100%;
+}
+
+/* SEAT */
+.seat {
+  width: 34px;
+  height: 34px;
+  background: var(--chair-color);
+  opacity: 0.85;
+  cursor: grab;
+  transition: all 0.15s;
+  position: relative;
+  flex-shrink: 0;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+/* Chair shape per side */
+.seat[data-side="top"]    { border-radius: 50% 50% 40% 40% / 60% 60% 40% 40%; }
+.seat[data-side="bottom"] { border-radius: 40% 40% 50% 50% / 40% 40% 60% 60%; }
+.seat[data-side="left"]   { border-radius: 60% 40% 40% 60% / 50% 50% 50% 50%; }
+.seat[data-side="right"]  { border-radius: 40% 60% 60% 40% / 50% 50% 50% 50%; }
+
+.seat.occupied { background: var(--chair-seated); opacity: 1; cursor: grab; }
+.seat.female { background: var(--chair-female); opacity: 0.85; }
+.seat.male   { background: var(--chair-male);   opacity: 0.85; }
+.seat.female.occupied { background: var(--chair-female-seated); opacity: 1; }
+.seat.male.occupied   { background: var(--chair-male-seated);   opacity: 1; }
+.seat.highlight { border-color: var(--gold); transform: scale(1.15); opacity: 1; }
+.seat:hover { opacity: 1; transform: scale(1.1); border-color: var(--gold); }
+.seat.drop-target { border-color: var(--sage); transform: scale(1.2); opacity: 1; background: var(--sage); }
+.seat.dragging-out { opacity: 0.35; }
+
+.seat-initials {
+  font-size: 7px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+  pointer-events: none;
+  user-select: none;
+  text-align: center;
+  position: absolute;
+  padding: 1px 2px;
+  max-width: 32px;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
+}
+.seat-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--deep);
+  color: white;
+  font-size: 0.68rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 200;
+  pointer-events: none;
+}
+.seat-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: var(--deep);
+}
+.seat:hover .seat-tooltip { display: block; }
+
+/* CONTEXT MENU */
+.context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid var(--light);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  padding: 4px 0;
+  z-index: 1000;
+  min-width: 160px;
+  display: none;
+}
+.context-menu.visible { display: block; }
+.context-menu-title {
+  padding: 6px 14px;
+  font-size: 0.7rem;
+  color: var(--mid);
+  border-bottom: 1px solid var(--light);
+  font-style: italic;
+}
+.context-item {
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--deep);
+  transition: background 0.1s;
+}
+.context-item:hover { background: var(--light); }
+.context-item.danger { color: var(--dusty-rose); }
+
+/* DRAG GHOST */
+.drag-ghost {
+  position: fixed;
+  background: var(--deep);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+/* RIGHT PANEL */
+.detail-panel {
+  width: 170px;
+  background: var(--warm-white);
+  border-left: 1px solid var(--light);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: width 0.22s ease;
+}
+.detail-panel.collapsed { width: 28px; }
+.detail-panel.collapsed .detail-content { display: none; }
+.detail-content { flex: 1; overflow-y: auto; }
+.detail-placeholder {
+  padding: 20px 16px;
+  text-align: center;
+  color: var(--mid);
+  font-size: 0.78rem;
+  font-style: italic;
+}
+.table-detail-header {
+  padding: 10px 16px;
+  background: var(--table-bg);
+  color: white;
+}
+.table-detail-header h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 0.9rem;
+}
+.table-detail-header p { font-size: 0.7rem; opacity: 0.8; margin-top: 2px; }
+.seated-list { padding: 8px 0; }
+.seated-person {
+  padding: 5px 16px;
+  font-size: 0.75rem;
+  color: var(--deep);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.seated-person .remove-btn {
+  background: none; border: none;
+  cursor: pointer;
+  color: var(--dusty-rose);
+  font-size: 0.85rem;
+  line-height: 1; opacity: 0.6;
+  transition: opacity 0.1s;
+}
+.seated-person .remove-btn:hover { opacity: 1; }
+.seat-num {
+  font-size: 0.65rem; color: var(--mid);
+  background: var(--light);
+  border-radius: 3px; padding: 1px 4px;
+  flex-shrink: 0;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--light); border-radius: 2px; }
+.guest-section-header {
+  padding: 4px 16px 2px;
+  font-size: 0.63rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+  background: var(--cream);
+  border-top: 1px solid var(--light);
+  font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -536,15 +570,15 @@
     <div>Seated: <span id="seated-count">0</span></div>
     <div>Unseated: <span id="unseated-count">0</span></div>
   </div>
-  <div style="font-size:0.72rem;color:var(--mid);">Drag guests → seats • Right-click seat to remove</div>
+  <div style="font-size:0.72rem;color:var(--mid);">Drag guests → seats &nbsp;•&nbsp; Right-click seat to remove</div>
 </header>
 
 <div class="app-body">
-
   <!-- LEFT: Guest List -->
   <div class="guest-panel">
     <div class="panel-header">
       <h2>Guest List</h2>
+      <button class="panel-toggle-btn" id="toggleGuestPanel" title="Collapse panel">&#8249;</button>
       <input class="search-box" type="text" placeholder="Search guests…" id="guestSearch">
       <div class="filter-tabs">
         <button class="filter-tab active" data-filter="all">All</button>
@@ -557,28 +591,36 @@
 
   <!-- CENTER: Floor Plan -->
   <div class="floor-plan-area" id="floorPlanArea">
-    <div class="floor-container" id="floorContainer">
-      <!-- Tables rendered by JS -->
-
-      <div class="dancefloor" style="left:418px;top:178px;width:312px;height:250px;">Dancefloor</div>
-      <div class="dj-booth" style="left:476px;top:548px;width:150px;height:42px;">DJ</div>
-      <div class="entrance-marker" style="left:658px;top:546px;">
-        <div class="entrance-arrow"></div>
-        <div class="entrance-label">Entrance</div>
+    <div class="floor-viewport" id="floorViewport">
+      <div class="floor-container" id="floorContainer">
+        <!-- Static room elements -->
+        <div class="dancefloor" style="left:620px;top:230px;width:380px;height:310px;">Dancefloor</div>
+        <div class="dj-booth" style="left:620px;top:640px;width:190px;height:46px;">DJ</div>
+        <div class="entrance-marker" style="left:860px;top:634px;">
+          <div class="entrance-arrow"></div>
+          <div class="entrance-label">Entrance</div>
+        </div>
+        <!-- Tables injected by JS -->
       </div>
+    </div>
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+      <div class="zoom-level" id="zoomLevel">100%</div>
+      <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
+      <button class="zoom-btn" id="zoomReset" title="Reset zoom" style="font-size:0.7rem;">⌂</button>
     </div>
   </div>
 
   <!-- RIGHT: Table Detail -->
   <div class="detail-panel">
     <div class="panel-header">
+      <button class="panel-toggle-btn" id="toggleDetailPanel" title="Collapse panel">&#8250;</button>
       <h2>Table Detail</h2>
     </div>
     <div class="detail-content" id="detailContent">
       <div class="detail-placeholder">Click a table to see seated guests</div>
     </div>
   </div>
-
 </div>
 
 <div class="drag-ghost" id="dragGhost"></div>
@@ -589,317 +631,456 @@
 
 <script>
 // ============================================================
-// DATA
+// GUEST DATA
 // ============================================================
+// gender: 'f' = female, 'm' = male
 const GUESTS_RAW = [
   // Table 1 – Head Table (34 seats)
-  {first:"Olivia",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Vegetarian",table:"Table 1 - Head Table"},
-  {first:"Michael",last:"Pfluger",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Isabelle",last:"Soudry",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Evie",last:"Marshall",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Louis",last:"Akindele",meal:"Meat",diet:"Lactose",table:"Table 1 - Head Table"},
-  {first:"Sarah",last:"Fellows",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Mark",last:"Fellows",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Mallory",last:"Konczylo",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Alex",last:"Konczylo",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Chloe",last:"Massoni",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Christa",last:"Trudeau",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 1 - Head Table"},
-  {first:"Jeffrey",last:"Trudeau",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Sarah",last:"Sulkowski",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Allie",last:"Moshyedi",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Matthew",last:"Moshyedi",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Haley",last:"Tilley",meal:"Meat",diet:"Gluten Intolerance",table:"Table 1 - Head Table"},
-  {first:"Matthew",last:"Tilley",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Rachel",last:"Steger",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Nathan",last:"Sarkar",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Alvaro",last:"Ordonez",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 1 - Head Table"},
-  {first:"Karl",last:"Hillebrandt",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Vanessa",last:"Hillebrandt",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Tom",last:"Schaffer",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Laurene",last:"Cheung",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Benedict",last:"Kinny-Köster",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Brittany",last:"Quinn",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Mitchell",last:"Bryski",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Tiffany",last:"Johnson",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Blake",last:"Johnson",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Ben",last:"Vierra",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Andy",last:"Yang",meal:"Meat",diet:"Peanut allergy",table:"Table 1 - Head Table"},
-  {first:"Joyce",last:"Guo",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Annie",last:"Simard",meal:"Meat",diet:"",table:"Table 1 - Head Table"},
-  {first:"Ryan",last:"Simard",meal:"Meat",diet:"Tree nut allergy",table:"Table 1 - Head Table"},
+  {first:"Olivia",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Vegetarian",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Michael",last:"Pfluger",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Isabelle",last:"Soudry",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Evie",last:"Marshall",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Louis",last:"Akindele",meal:"Meat",diet:"Lactose",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Sarah",last:"Fellows",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Mark",last:"Fellows",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Mallory",last:"Konczylo",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Alex",last:"Konczylo",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Chloe",last:"Massoni",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Christa",last:"Trudeau",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Jeffrey",last:"Trudeau",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Sarah",last:"Sulkowski",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Allie",last:"Moshyedi",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Matthew",last:"Moshyedi",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Haley",last:"Tilley",meal:"Meat",diet:"Gluten Intolerance",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Matthew",last:"Tilley",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Rachel",last:"Steger",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Nathan",last:"Sarkar",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Alvaro",last:"Ordonez",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Karl",last:"Hillebrandt",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Vanessa",last:"Hillebrandt",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Tom",last:"Schaffer",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Laurene",last:"Cheung",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Benedict",last:"Kinny-Köster",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Brittany",last:"Quinn",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Mitchell",last:"Bryski",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Tiffany",last:"Johnson",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Blake",last:"Johnson",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Ben",last:"Vierra",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Andy",last:"Yang",meal:"Meat",diet:"Peanut allergy",table:"Table 1 - Head Table",gender:"m"},
+  {first:"Joyce",last:"Guo",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Annie",last:"Simard",meal:"Meat",diet:"",table:"Table 1 - Head Table",gender:"f"},
+  {first:"Ryan",last:"Simard",meal:"Meat",diet:"Tree nut allergy",table:"Table 1 - Head Table",gender:"m"},
   // Table 2 – La Moutonne City (10)
-  {first:"Brigitte",last:"Berlinger",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Patrick",last:"Berlinger",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Alice",last:"Lauzi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Greg",last:"Lauzi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Chantal",last:"Rime",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Genevieve",last:"Bastianesi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Roland",last:"Mercier",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Evelyne",last:"Pinard",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Alizee",last:"Mousseux",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  {first:"Jules",last:"Rouviere",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City"},
-  // Table 3 – French Warriors (26)
-  {first:"Gabriel",last:"Soudry",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Christine",last:"Soudry",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Laurence",last:"Bernard",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Laurent",last:"Bernard",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Jean-Yves",last:"Simonet",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Jocelyne",last:"Simonet",meal:"Meat",diet:"Cheese intolerance",table:"Table 3 - French Warriors"},
-  {first:"Eugenie",last:"Nes",meal:"Meat",diet:"Tuna",table:"Table 3 - French Warriors"},
-  {first:"David",last:"Nes",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Réjane",last:"Rollin",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Xavier",last:"Rollin",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"William",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Caroline",last:"Prati",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Frédérica",last:"Roquebert",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Pierre-Olivier",last:"Roquebert",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Magali",last:"Cayol",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Luc",last:"Teboul",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Andreas",last:"Stein",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Valerie",last:"Coriatt",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Ariane",last:"Regnier",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Gérard",last:"Gay",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Nathalie",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Laurent",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Ailsa",last:"Marshall",meal:"Vegetarian / Gluten Free",diet:"Gluten free",table:"Table 3 - French Warriors"},
-  {first:"Ben",last:"Marshall",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Caroline",last:"Ferber",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  {first:"Bob",last:"Ferber",meal:"Meat",diet:"",table:"Table 3 - French Warriors"},
-  // Table 4 – Young Frenchies / Internationals (23)
-  {first:"Pierre",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Vegan",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Madison",last:"Young",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Bianca",last:"Rollin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Matteo",last:"Bagatin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Ethan",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Hugo",last:"Marshall",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Baptiste",last:"Monnier",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Sacha",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Pénélope",last:"Provôt",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Amelia",last:"Marshall",meal:"Vegetarian / Gluten Free",diet:"Vegetarian",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Luke",last:"Andrews",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Steven",last:"Bobard",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Marine",last:"Saladin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Audrey",last:"Mousseux",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Carla",last:"Braunsteffer",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Valentin",last:"Grézanlé",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Louis",last:"Roquebert",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Paul",last:"Roquebert",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Léa",last:"Fressoz",meal:"Meat",diet:"Walnut & Oysters",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Bastien",last:"Rollin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Raphaelle",last:"Teboul",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Abigail",last:"McDonald",meal:"Meat",diet:"Gluten free",table:"Table 4 - Young Frenchies / Internationals"},
-  {first:"Jason",last:"Clark",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals"},
+  {first:"Brigitte",last:"Berlinger",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Patrick",last:"Berlinger",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"m"},
+  {first:"Alice",last:"Lauzi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Greg",last:"Lauzi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"m"},
+  {first:"Chantal",last:"Rime",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Genevieve",last:"Bastianesi",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Roland",last:"Mercier",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"m"},
+  {first:"Evelyne",last:"Pinard",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Alizee",last:"Mousseux",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"f"},
+  {first:"Jules",last:"Rouviere",meal:"Meat",diet:"",table:"Table 2 - La Moutonne City",gender:"m"},
+  // Table 3 – French Warriors (26 + 2 side = 28 seats total)
+  {first:"Gabriel",last:"Soudry",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Christine",last:"Soudry",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Laurence",last:"Bernard",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Laurent",last:"Bernard",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Jean-Yves",last:"Simonet",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Jocelyne",last:"Simonet",meal:"Meat",diet:"Cheese intolerance",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Eugenie",last:"Nes",meal:"Meat",diet:"Tuna",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"David",last:"Nes",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Réjane",last:"Rollin",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Xavier",last:"Rollin",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"William",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Caroline",last:"Prati",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Frédérica",last:"Roquebert",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Pierre-Olivier",last:"Roquebert",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Magali",last:"Cayol",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Luc",last:"Teboul",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Andreas",last:"Stein",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Valerie",last:"Coriatt",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Ariane",last:"Regnier",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Gérard",last:"Gay",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Nathalie",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Laurent",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Ailsa",last:"Marshall",meal:"Vegetarian / Gluten Free",diet:"Gluten free",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Ben",last:"Marshall",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  {first:"Caroline",last:"Ferber",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"f"},
+  {first:"Bob",last:"Ferber",meal:"Meat",diet:"",table:"Table 3 - French Warriors",gender:"m"},
+  // Table 4 – Young Frenchies (23)
+  {first:"Pierre",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Vegan",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Madison",last:"Young",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Bianca",last:"Rollin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Matteo",last:"Bagatin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Ethan",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Hugo",last:"Marshall",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Baptiste",last:"Monnier",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Sacha",last:"Kerfridin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Pénélope",last:"Provôt",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Amelia",last:"Marshall",meal:"Vegetarian / Gluten Free",diet:"Vegetarian",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Luke",last:"Andrews",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Steven",last:"Bobard",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Marine",last:"Saladin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Audrey",last:"Mousseux",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Carla",last:"Braunsteffer",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Valentin",last:"Grézanlé",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Louis",last:"Roquebert",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Paul",last:"Roquebert",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Léa",last:"Fressoz",meal:"Meat",diet:"Walnut & Oysters",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Bastien",last:"Rollin",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
+  {first:"Raphaelle",last:"Teboul",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Abigail",last:"McDonald",meal:"Meat",diet:"Gluten free",table:"Table 4 - Young Frenchies / Internationals",gender:"f"},
+  {first:"Jason",last:"Clark",meal:"Meat",diet:"",table:"Table 4 - Young Frenchies / Internationals",gender:"m"},
   // Table 5 – Long lost cousins (16)
-  {first:"Morgan",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Anaphylactic - nuts & shellfish",table:"Table 5 - Long Lost Cousins"},
-  {first:"Claudia",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Philippe",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Jacqueline",last:"Bowen",meal:"Vegetarian / Gluten Free",diet:"Pescatarian",table:"Table 5 - Long Lost Cousins"},
-  {first:"Jeremy",last:"Silver",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Connor",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Evan",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Luke",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Lucile",last:"Smerghetto",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Marco",last:"Smerghetto",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Alexia",last:"Givert",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Marc",last:"Givert",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Avner",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Michelle",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Michel",last:"Routchenko",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  {first:"Martine",last:"Routchenko",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins"},
-  // Table 6 – Kids Corner (12+)
-  {first:"Winifred",last:"Fellows",meal:"No Meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Delphine",last:"Fellows",meal:"No Meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Teddy",last:"Trudeau",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Paula",last:"Hillebrandt",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Ina",last:"Lauzi",meal:"Meat",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Loan",last:"Lauzi",meal:"Meat",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Lino",last:"Smerghetto",meal:"Kids' meal",diet:"Gluten free (coeliac)",table:"Table 6 - Kids Corner"},
-  {first:"Adèle",last:"Smerghetto",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Camille",last:"Givert",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Vadim",last:"Givert",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Elli",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Jonathan",last:"Mayer",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Constantin",last:"Mayer",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Harper",last:"Clark",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Cooper",last:"Clark",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
-  {first:"Louise",last:"Culmann",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner"},
+  {first:"Morgan",last:"Soudry",meal:"Vegetarian / Gluten Free",diet:"Anaphylactic - nuts & shellfish",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Claudia",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Philippe",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Jacqueline",last:"Bowen",meal:"Vegetarian / Gluten Free",diet:"Pescatarian",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Jeremy",last:"Silver",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Connor",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Evan",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Luke",last:"Lomis",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Lucile",last:"Smerghetto",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Marco",last:"Smerghetto",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Alexia",last:"Givert",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Marc",last:"Givert",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Avner",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Michelle",last:"Soudry",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  {first:"Michel",last:"Routchenko",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"m"},
+  {first:"Martine",last:"Routchenko",meal:"Meat",diet:"",table:"Table 5 - Long Lost Cousins",gender:"f"},
+  // Table 6 – Kids Corner
+  {first:"Winifred",last:"Fellows",meal:"No Meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Delphine",last:"Fellows",meal:"No Meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Teddy",last:"Trudeau",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Paula",last:"Hillebrandt",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Ina",last:"Lauzi",meal:"Meat",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Loan",last:"Lauzi",meal:"Meat",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Lino",last:"Smerghetto",meal:"Kids' meal",diet:"Gluten free (coeliac)",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Adèle",last:"Smerghetto",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Camille",last:"Givert",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Vadim",last:"Givert",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Elli",last:"Assouline",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Jonathan",last:"Mayer",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Constantin",last:"Mayer",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Harper",last:"Clark",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
+  {first:"Cooper",last:"Clark",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"m"},
+  {first:"Louise",last:"Culmann",meal:"Kids' meal",diet:"",table:"Table 6 - Kids Corner",gender:"f"},
   // Table 7 – Germans (24)
-  {first:"Alexander",last:"Damanakis",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Charlotte",last:"Schmidt-Holzmann",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 7 - Germans"},
-  {first:"Maren",last:"Mayer",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Thomas",last:"Mayer",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Christina",last:"Schücking",meal:"Meat",diet:"Hazelnut, salmon, seafood",table:"Table 7 - Germans"},
-  {first:"Antonia",last:"Mondorf",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"David",last:"Culmann",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Ramona",last:"Culmann",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Konstanze",last:"Pflüger",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 7 - Germans"},
-  {first:"Pierre",last:"Schneeweis",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Paula",last:"Schneeweis",meal:"No Meal",diet:"10 months",table:"Table 7 - Germans"},
-  {first:"Tobias",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Kelly",last:"Stapf",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Barbara",last:"Pflüger",meal:"Vegetarian / Gluten Free",diet:"Apple, nuts and pear",table:"Table 7 - Germans"},
-  {first:"Hermann",last:"Pflüger",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Markus",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Gertraud",last:"Deißler",meal:"Meat",diet:"Fructose & Histamine intolerance",table:"Table 7 - Germans"},
-  {first:"Claus",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Ursula",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Helmut",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Gertraud",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Vincent",last:"Heck",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Melina",last:"Heck",meal:"Meat",diet:"",table:"Table 7 - Germans"},
-  {first:"Leonard",last:"Heck",meal:"Kids' meal",diet:"11 months",table:"Table 7 - Germans"},
+  {first:"Alexander",last:"Damanakis",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Charlotte",last:"Schmidt-Holzmann",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Maren",last:"Mayer",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Thomas",last:"Mayer",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Christina",last:"Schücking",meal:"Meat",diet:"Hazelnut, salmon, seafood",table:"Table 7 - Germans",gender:"f"},
+  {first:"Antonia",last:"Mondorf",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"David",last:"Culmann",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Ramona",last:"Culmann",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Konstanze",last:"Pflüger",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Pierre",last:"Schneeweis",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Paula",last:"Schneeweis",meal:"No Meal",diet:"10 months",table:"Table 7 - Germans",gender:"f"},
+  {first:"Tobias",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Kelly",last:"Stapf",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Barbara",last:"Pflüger",meal:"Vegetarian / Gluten Free",diet:"Apple, nuts and pear",table:"Table 7 - Germans",gender:"f"},
+  {first:"Hermann",last:"Pflüger",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Markus",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Gertraud",last:"Deißler",meal:"Meat",diet:"Fructose & Histamine intolerance",table:"Table 7 - Germans",gender:"f"},
+  {first:"Claus",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Ursula",last:"Deißler",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Helmut",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Gertraud",last:"Kreiselmeier",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Vincent",last:"Heck",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"m"},
+  {first:"Melina",last:"Heck",meal:"Meat",diet:"",table:"Table 7 - Germans",gender:"f"},
+  {first:"Leonard",last:"Heck",meal:"Kids' meal",diet:"11 months",table:"Table 7 - Germans",gender:"m"},
   // Table 8 – Americans (24)
-  {first:"Lisa",last:"Soudry",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Jonathan",last:"Soudry",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Marcos",last:"Wolff",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans"},
-  {first:"Beth",last:"Wolff",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans"},
-  {first:"Dimitri",last:"Merine",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Brenda",last:"Merine",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Howard",last:"Goldman",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans"},
-  {first:"Donna",last:"Goldman",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans"},
-  {first:"Charlotte",last:"Smith",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Philippe",last:"Amiraux",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Angela",last:"Ney",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Derek",last:"Ney",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Christina",last:"Massoni",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Jeffrey",last:"Massoni",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Deme Ann",last:"Lomis",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Van",last:"Lomis",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Aashrayata",last:"Pandit",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Anil",last:"Pandit",meal:"Vegetarian / Gluten Free",diet:"No pork or beef",table:"Table 8 - Americans"},
-  {first:"Jim",last:"Parshall",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans"},
-  {first:"Susan",last:"Parshall",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Kathleen",last:"Yonkunas",meal:"Vegetarian / Gluten Free",diet:"Gluten Free & non-dairy",table:"Table 8 - Americans"},
-  {first:"John",last:"Yonkunas",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Frederic",last:"Yeganeh",meal:"Meat",diet:"",table:"Table 8 - Americans"},
-  {first:"Tammy",last:"Yeganeh",meal:"Meat",diet:"Bell Pepper allergy",table:"Table 8 - Americans"},
+  {first:"Lisa",last:"Soudry",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Jonathan",last:"Soudry",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Marcos",last:"Wolff",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Beth",last:"Wolff",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Dimitri",last:"Merine",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Brenda",last:"Merine",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Howard",last:"Goldman",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Donna",last:"Goldman",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Charlotte",last:"Smith",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Philippe",last:"Amiraux",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Angela",last:"Ney",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Derek",last:"Ney",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Christina",last:"Massoni",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Jeffrey",last:"Massoni",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Deme Ann",last:"Lomis",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Van",last:"Lomis",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Aashrayata",last:"Pandit",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Anil",last:"Pandit",meal:"Vegetarian / Gluten Free",diet:"No pork or beef",table:"Table 8 - Americans",gender:"m"},
+  {first:"Jim",last:"Parshall",meal:"Vegetarian / Gluten Free",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Susan",last:"Parshall",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"f"},
+  {first:"Kathleen",last:"Yonkunas",meal:"Vegetarian / Gluten Free",diet:"Gluten Free & non-dairy",table:"Table 8 - Americans",gender:"f"},
+  {first:"John",last:"Yonkunas",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Frederic",last:"Yeganeh",meal:"Meat",diet:"",table:"Table 8 - Americans",gender:"m"},
+  {first:"Tammy",last:"Yeganeh",meal:"Meat",diet:"Bell Pepper allergy",table:"Table 8 - Americans",gender:"f"},
 ];
 
-// Table layout config matching original floor plan image
-// Original image: Head Table (34) top-center spanning wide
-// T2 La Moutonne City (10) top-left
-// T3 French Warriors (26) mid-left
-// T4 Young Frenchies (23) lower-left
-// Layout matches original floor plan image exactly
-// Seat counts per original: T1=34, T2=10, T3=26(+2 side), T4=23, T5=16, T6=12, T7=24, T8=24
-// T3 has 1 side seat on each end (visible in original as single chairs on left+right of table)
+// ============================================================
+// TABLE LAYOUT — matched precisely to the image
+//
+// Each table definition:
+//   id, label, pos {left, top} = top-left of the entire group
+//   tableW: width of the actual table rectangle
+//   tableH: height of the table rectangle
+//   topSeats: number of seats above the table
+//   botSeats: number of seats below the table
+//   leftSeats: number of seats on the left end (Table 3 only)
+//   rightSeats: number of seats on the right end (Table 3 only)
+//
+// Seat indexing order: top row L→R, then left side T→B, then right side T→B, then bottom row L→R
+// ============================================================
+
+// SEAT_SIZE and GAP affect spacing
+const SEAT_SIZE = 34;
+const SEAT_GAP  = 3;
+
+// Each seat row width = count * SEAT_SIZE + (count-1) * SEAT_GAP
+// T1: 17 * 34 + 16 * 3 = 578 + 48 = 626px wide
+// T2: 5  * 34 + 4  * 3 = 170 + 12 = 182px wide
+// T3: 13 * 34 + 12 * 3 = 442 + 36 = 478px wide (+ side seats)
+// T4: 12 * 34 + 11 * 3 = 408 + 33 = 441px wide
+// T5: 8  * 34 + 7  * 3 = 272 + 21 = 293px wide
+// T6: 8  * 34 + 7  * 3 = 272 + 21 = 293px wide (12 named guests)
+// T7: 12 * 34 + 11 * 3 = 408 + 33 = 441px wide
+// T8: 12 * 34 + 11 * 3 = 408 + 33 = 441px wide
+//
+// Layout (matching image):
+// Left column:  T2 top-left, T3 mid-left, T4 lower-left, T5 bottom-left
+// Center-top:   T1 head table spanning center
+// Right column: T6 top-right, T7 mid-right, T8 lower-right
+// Center:       Dancefloor, DJ, Entrance
+//
+// Canvas width must fit: left col (~480) + center gap + right col (~450) = ~1600px
+// We'll use 1650px wide, 820px tall
+
 const TABLES = [
-  // Head Table: top-center, wide. Two small end-cap table blocks + main block.
-  // We render as single wide table: 17 top, 17 bottom
-  { id:"t1", label:"Table 1 – Head Table",                   seats:34, pos:{left:326, top:14},  width:490, tableH:40, seatRows:{top:17, bottom:17}, sideSeats:{left:0,right:0} },
-  // La Moutonne City: top-left, 5+5
-  { id:"t2", label:"Table 2 – La Moutonne City",             seats:10, pos:{left:44,  top:22},  width:205, tableH:36, seatRows:{top:5,  bottom:5},  sideSeats:{left:0,right:0} },
-  // French Warriors: mid-left, very wide, 13+13 + 1 chair each side end
-  { id:"t3", label:"Table 3 – French Warriors",              seats:28, pos:{left:22,  top:195}, width:495, tableH:36, seatRows:{top:13, bottom:13}, sideSeats:{left:1,right:1} },
-  // Young Frenchies: lower-left, 12+11
-  { id:"t4", label:"Table 4 – Young Frenchies / Internationals", seats:23, pos:{left:44, top:355}, width:420, tableH:36, seatRows:{top:12, bottom:11}, sideSeats:{left:0,right:0} },
-  // Long lost cousins: bottom-left, inset from left edge, 8+8
-  { id:"t5", label:"Table 5 – Long lost cousins",            seats:16, pos:{left:96,  top:510}, width:310, tableH:36, seatRows:{top:8,  bottom:8},  sideSeats:{left:0,right:0} },
-  // Kids Corner: top-right, 6+6 (12 no specific seating)
-  { id:"t6", label:"Table 6 – Kids Corner",                  seats:12, pos:{left:898, top:22},  width:218, tableH:36, seatRows:{top:6,  bottom:6},  sideSeats:{left:0,right:0} },
-  // Germans: mid-right, 12+12
-  { id:"t7", label:"Table 7 – Germans",                      seats:24, pos:{left:872, top:215}, width:266, tableH:36, seatRows:{top:12, bottom:12}, sideSeats:{left:0,right:0} },
-  // Americans: lower-right, 12+12
-  { id:"t8", label:"Table 8 – Americans",                    seats:24, pos:{left:872, top:375}, width:266, tableH:36, seatRows:{top:12, bottom:12}, sideSeats:{left:0,right:0} },
+  // ── Table 1: Head Table — center top, 17+17 = 34 seats ──────
+  {
+    id: "t1", label: "Table 1 – Head Table",
+    pos: { left: 490, top: 28 },
+    tableW: 626, tableH: 46,
+    topSeats: 17, botSeats: 17,
+    leftSeats: 0, rightSeats: 0,
+  },
+  // ── Table 2: La Moutonne City — top left, 5+5 = 10 ──────────
+  {
+    id: "t2", label: "Table 2 – La Moutonne City",
+    pos: { left: 40, top: 28 },
+    tableW: 182, tableH: 40,
+    topSeats: 5, botSeats: 5,
+    leftSeats: 0, rightSeats: 0,
+  },
+  // ── Table 3: French Warriors — mid left, 12+12+1+1 = 26 ─────
+  {
+    id: "t3", label: "Table 3 – French Warriors",
+    pos: { left: 8, top: 248 },
+    tableW: 478, tableH: 40,
+    topSeats: 12, botSeats: 12,
+    leftSeats: 1, rightSeats: 1,
+  },
+  // ── Table 4: Young Frenchies — lower left, 12+11 = 23 ───────
+  {
+    id: "t4", label: "Table 4 – Young Frenchies / Internationals",
+    pos: { left: 40, top: 468 },
+    tableW: 441, tableH: 40,
+    topSeats: 12, botSeats: 11,
+    leftSeats: 0, rightSeats: 0,
+  },
+  // ── Table 5: Long lost cousins — bottom left, 8+8 = 16 ──────
+  {
+    id: "t5", label: "Table 5 – Long lost cousins",
+    pos: { left: 110, top: 672 },
+    tableW: 293, tableH: 40,
+    topSeats: 8, botSeats: 8,
+    leftSeats: 0, rightSeats: 0,
+  },
+  // ── Table 6: Kids Corner — top right, 8+8 = 16 seats ────────
+  {
+    id: "t6", label: "Table 6 – Kids Corner",
+    pos: { left: 1310, top: 28 },
+    tableW: 293, tableH: 40,
+    topSeats: 8, botSeats: 8,
+    leftSeats: 0, rightSeats: 0,
+    note: "12 chairs, no specific seating",
+  },
+  // ── Table 7: Germans — mid right, 12+12 = 24 ────────────────
+  {
+    id: "t7", label: "Table 7 – Germans",
+    pos: { left: 1175, top: 248 },
+    tableW: 441, tableH: 40,
+    topSeats: 12, botSeats: 12,
+    leftSeats: 0, rightSeats: 0,
+  },
+  // ── Table 8: Americans — lower right, 12+12 = 24 ────────────
+  {
+    id: "t8", label: "Table 8 – Americans",
+    pos: { left: 1175, top: 468 },
+    tableW: 441, tableH: 40,
+    topSeats: 12, botSeats: 12,
+    leftSeats: 0, rightSeats: 0,
+  },
 ];
 
-// State
-const seatingState = {}; // seatKey -> guestId
+// ============================================================
+// STATE
+// ============================================================
+const seatingState = {}; // seatKey → guestId | null
+
 TABLES.forEach(t => {
-  const total = t.seatRows.top + (t.seatRows.bottom||0) + (t.sideSeats ? t.sideSeats.left + t.sideSeats.right : 0);
-  for(let i=0;i<total;i++) seatingState[`${t.id}-${i}`] = null;
+  const total = t.topSeats + t.botSeats + (t.leftSeats||0) + (t.rightSeats||0);
+  for (let i = 0; i < total; i++) seatingState[`${t.id}-${i}`] = null;
 });
 
-let guests = GUESTS_RAW.map((g,i) => ({
+let guests = GUESTS_RAW.map((g, i) => ({
   id: `g${i}`,
   name: `${g.first} ${g.last}`,
   first: g.first, last: g.last,
   meal: g.meal, diet: g.diet,
+  gender: g.gender || 'm',
   suggestedTable: g.table,
-  seated: false,
-  seatKey: null
+  seated: false, seatKey: null,
 }));
 
 let dragGuestId = null;
+let dragSourceSeatKey = null;
+let dropHandled = false; // true when drop landed on a valid target
 let activeFilter = 'all';
 let searchTerm = '';
 let activeTableId = null;
 
 // ============================================================
-// RENDER TABLES ON FLOOR PLAN
+// BUILD FLOOR — render all tables onto #floorContainer
 // ============================================================
 function buildFloor() {
   const container = document.getElementById('floorContainer');
 
   TABLES.forEach(t => {
-    const topCount = t.seatRows.top;
-    const botCount = t.seatRows.bottom || 0;
-    const hasSideL = t.sideSeats && t.sideSeats.left > 0;
-    const hasSideR = t.sideSeats && t.sideSeats.right > 0;
-    let seatIdx = 0;
+    const topCount   = t.topSeats;
+    const botCount   = t.botSeats;
+    const leftCount  = t.leftSeats  || 0;
+    const rightCount = t.rightSeats || 0;
+
+    // Total seat width for top/bottom rows
+    const rowSeatWidth = topCount * SEAT_SIZE + (topCount - 1) * SEAT_GAP;
+    // Total width of the mid row: [leftSeat?] + table + [rightSeat?]
+    const midTotalWidth = t.tableW + (leftCount > 0 ? SEAT_SIZE + 4 : 0) + (rightCount > 0 ? SEAT_SIZE + 4 : 0);
+    // Wrapper width = max of row width and mid width
+    const wrapperW = Math.max(rowSeatWidth, midTotalWidth);
 
     const wrapper = document.createElement('div');
-    wrapper.style.position = 'absolute';
+    wrapper.className = 'table-group';
     wrapper.style.left = t.pos.left + 'px';
-    wrapper.style.top = t.pos.top + 'px';
-    wrapper.style.width = t.width + 'px';
+    wrapper.style.top  = t.pos.top  + 'px';
+    wrapper.style.width = wrapperW + 'px';
     wrapper.dataset.tableId = t.id;
 
-    // TOP SEATS ROW — inset by seat width if there are side seats
+    let seatIdx = 0;
+
+    // ── TOP ROW ──
     const topRow = document.createElement('div');
     topRow.className = 'seats-row';
     topRow.style.marginBottom = '3px';
-    if(hasSideL || hasSideR) {
-      const inset = 22;
-      topRow.style.marginLeft = hasSideL ? inset + 'px' : '0';
-      topRow.style.marginRight = hasSideR ? inset + 'px' : '0';
+    // Inset top/bottom rows to align under the table portion (not over side seats)
+    if (leftCount > 0 || rightCount > 0) {
+      const inset = leftCount > 0 ? SEAT_SIZE + 4 : 0;
+      topRow.style.paddingLeft  = (leftCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
+      topRow.style.paddingRight = (rightCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
     }
-    for(let i = 0; i < topCount; i++) topRow.appendChild(makeSeat(t.id, seatIdx++, 'top'));
+    for (let i = 0; i < topCount; i++) {
+      topRow.appendChild(makeSeat(t.id, seatIdx++, 'top'));
+    }
     wrapper.appendChild(topRow);
 
-    // MIDDLE ROW: [left-side-seat?] + table + [right-side-seat?]
+    // ── MID ROW: [left seat] + table rect + [right seat] ──
     const midRow = document.createElement('div');
-    midRow.style.display = 'flex';
-    midRow.style.alignItems = 'center';
-    midRow.style.gap = '2px';
+    midRow.className = 'table-mid-row';
+    midRow.style.gap = '4px';
 
-    if(hasSideL) {
-      const ls = makeSeat(t.id, seatIdx++, 'left');
-      ls.style.flexShrink = '0';
-      midRow.appendChild(ls);
+    if (leftCount > 0) {
+      for (let i = 0; i < leftCount; i++) {
+        const ls = makeSeat(t.id, seatIdx++, 'left');
+        ls.style.flexShrink = '0';
+        midRow.appendChild(ls);
+      }
     }
 
     const tableRect = document.createElement('div');
     tableRect.className = 'table-rect';
-    tableRect.style.flex = '1';
+    tableRect.style.width = t.tableW + 'px';
     tableRect.style.height = (t.tableH || 38) + 'px';
+    tableRect.style.flexShrink = '0';
     tableRect.textContent = t.label;
-    tableRect.style.cursor = 'pointer';
     tableRect.addEventListener('click', () => showTableDetail(t.id));
     midRow.appendChild(tableRect);
 
-    if(hasSideR) {
-      const rs = makeSeat(t.id, seatIdx++, 'right');
-      rs.style.flexShrink = '0';
-      midRow.appendChild(rs);
+    if (rightCount > 0) {
+      for (let i = 0; i < rightCount; i++) {
+        const rs = makeSeat(t.id, seatIdx++, 'right');
+        rs.style.flexShrink = '0';
+        midRow.appendChild(rs);
+      }
     }
+
     wrapper.appendChild(midRow);
 
-    // BOTTOM SEATS ROW
-    if(botCount > 0) {
+    // ── BOTTOM ROW ──
+    if (botCount > 0) {
       const botRow = document.createElement('div');
       botRow.className = 'seats-row';
       botRow.style.marginTop = '3px';
-      if(hasSideL || hasSideR) {
-        const inset = 22;
-        botRow.style.marginLeft = hasSideL ? inset + 'px' : '0';
-        botRow.style.marginRight = hasSideR ? inset + 'px' : '0';
+      if (leftCount > 0 || rightCount > 0) {
+        botRow.style.paddingLeft  = (leftCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
+        botRow.style.paddingRight = (rightCount > 0 ? SEAT_SIZE + 4 : 0) + 'px';
       }
-      for(let i = 0; i < botCount; i++) botRow.appendChild(makeSeat(t.id, seatIdx++, 'bottom'));
+      for (let i = 0; i < botCount; i++) {
+        botRow.appendChild(makeSeat(t.id, seatIdx++, 'bottom'));
+      }
       wrapper.appendChild(botRow);
     }
 
+    // Kids Corner note label
+    if (t.note) {
+      const noteEl = document.createElement('div');
+      noteEl.style.cssText = 'font-size:0.58rem;color:#bbb;text-align:right;margin-top:2px;font-style:italic;';
+      noteEl.textContent = t.note;
+      wrapper.appendChild(noteEl);
+    }
+
     container.appendChild(wrapper);
+  });
+
+  // Seat count labels in left margin (matching image numbers)
+  const labelData = [
+    { id: 't1', text: '34', side: 'top' },
+    { id: 't2', text: '10', side: 'left' },
+    { id: 't3', text: '26', side: 'left' },
+    { id: 't4', text: '23', side: 'left' },
+    { id: 't5', text: '16', side: 'left' },
+    { id: 't7', text: '24', side: 'right' },
+    { id: 't8', text: '24', side: 'right' },
+  ];
+  labelData.forEach(ld => {
+    const tbl = TABLES.find(t => t.id === ld.id);
+    if (!tbl) return;
+    const lbl = document.createElement('div');
+    lbl.className = 'seat-count-label';
+    lbl.textContent = ld.text;
+    // Position roughly to the left of each table group
+    if (ld.side === 'left') {
+      lbl.style.left = (tbl.pos.left - 22) + 'px';
+      lbl.style.top  = (tbl.pos.top + tbl.tableH / 2 + SEAT_SIZE + 3) + 'px';
+    } else if (ld.side === 'right') {
+      lbl.style.left = (tbl.pos.left - 22) + 'px';
+      lbl.style.top  = (tbl.pos.top + tbl.tableH / 2 + SEAT_SIZE + 3) + 'px';
+    } else {
+      // top label above table 1
+      lbl.style.left = (tbl.pos.left + tbl.tableW / 2) + 'px';
+      lbl.style.top  = (tbl.pos.top - 14) + 'px';
+    }
+    document.getElementById('floorContainer').appendChild(lbl);
   });
 }
 
@@ -920,34 +1101,54 @@ function makeSeat(tableId, idx, side) {
   tooltip.textContent = 'Empty';
   seat.appendChild(tooltip);
 
-  // Drag over
-  seat.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    seat.classList.add('drop-target');
+  // Drag FROM seat
+  seat.addEventListener('dragstart', e => {
+    const seatKey = `${tableId}-${idx}`;
+    const gId = seatingState[seatKey];
+    if (!gId) { e.preventDefault(); return; }
+    dragGuestId = gId;
+    dragSourceSeatKey = seatKey;
+    dropHandled = false;
+    seat.classList.add('dragging-out');
+    const g = guests.find(x => x.id === gId);
+    const ghost = document.getElementById('dragGhost');
+    ghost.textContent = g.name;
+    ghost.style.display = 'block';
+    e.dataTransfer.effectAllowed = 'move';
   });
+  seat.addEventListener('dragend', () => {
+    seat.classList.remove('dragging-out');
+    document.getElementById('dragGhost').style.display = 'none';
+    // Only remove if no valid drop target received the guest
+    if (!dropHandled && dragSourceSeatKey) {
+      removeGuestFromSeat(dragSourceSeatKey);
+    }
+    dragGuestId = null;
+    dragSourceSeatKey = null;
+    dropHandled = false;
+  });
+
+  // Make seat draggable only when occupied
+  seat.draggable = true;
+
+  // Drop FROM guest list or another seat
+  seat.addEventListener('dragover', e => { e.preventDefault(); seat.classList.add('drop-target'); });
   seat.addEventListener('dragleave', () => seat.classList.remove('drop-target'));
-  seat.addEventListener('drop', (e) => {
+  seat.addEventListener('drop', e => {
     e.preventDefault();
     seat.classList.remove('drop-target');
-    if(dragGuestId) {
+    if (dragGuestId) {
+      dropHandled = true;
       assignGuestToSeat(dragGuestId, `${tableId}-${idx}`);
     }
   });
 
-  // Right click
-  seat.addEventListener('contextmenu', (e) => {
+  // Right click still works as fallback
+  seat.addEventListener('contextmenu', e => {
     e.preventDefault();
     const seatKey = `${tableId}-${idx}`;
     const gId = seatingState[seatKey];
-    if(gId) showContextMenu(e, seatKey, gId);
-  });
-
-  // Click to assign (if dragging not needed)
-  seat.addEventListener('click', () => {
-    const seatKey = `${tableId}-${idx}`;
-    if(seatingState[seatKey]) {
-      showTableDetail(tableId);
-    }
+    if (gId) showContextMenu(e, seatKey, gId);
   });
 
   return seat;
@@ -970,14 +1171,14 @@ function renderGuestList() {
   // Group by suggested table
   const byTable = {};
   filtered.forEach(g => {
-    if(!byTable[g.suggestedTable]) byTable[g.suggestedTable] = [];
+    if (!byTable[g.suggestedTable]) byTable[g.suggestedTable] = [];
     byTable[g.suggestedTable].push(g);
   });
 
   Object.entries(byTable).forEach(([tableName, gs]) => {
     const header = document.createElement('div');
     header.className = 'guest-section-header';
-    header.textContent = tableName.replace('Table ','T').replace(' - ','–');
+    header.textContent = tableName.replace('Table ', 'T').replace(' - ', ' – ');
     list.appendChild(header);
 
     gs.forEach(g => {
@@ -987,7 +1188,10 @@ function renderGuestList() {
       item.dataset.guestId = g.id;
 
       const isVeg = g.meal.includes('Vegetarian');
-      const hasAllergy = g.diet.toLowerCase().includes('allerg') || g.diet.toLowerCase().includes('anaphylactic') || g.diet.toLowerCase().includes('intolerance') || g.diet.toLowerCase().includes('free');
+      const hasAllergy = g.diet.toLowerCase().includes('allerg') ||
+        g.diet.toLowerCase().includes('anaphylactic') ||
+        g.diet.toLowerCase().includes('intolerance') ||
+        g.diet.toLowerCase().includes('free');
 
       item.innerHTML = `
         <div class="guest-name">${g.name}</div>
@@ -995,96 +1199,109 @@ function renderGuestList() {
         ${g.diet ? `<span class="diet-badge ${isVeg?'veg':''} ${hasAllergy?'allergy':''}">${g.diet}</span>` : ''}
       `;
 
-      item.addEventListener('dragstart', (e) => {
+      item.addEventListener('dragstart', e => {
         dragGuestId = g.id;
+        dragSourceSeatKey = null;
+        dropHandled = false;
         item.classList.add('dragging');
         const ghost = document.getElementById('dragGhost');
         ghost.textContent = g.name;
         ghost.style.display = 'block';
         e.dataTransfer.effectAllowed = 'move';
       });
-
       item.addEventListener('dragend', () => {
         item.classList.remove('dragging');
         document.getElementById('dragGhost').style.display = 'none';
-        dragGuestId = null;
+        if (!dropHandled) {
+          dragGuestId = null;
+        }
+        dropHandled = false;
       });
 
       list.appendChild(item);
     });
   });
 
-  if(filtered.length === 0) {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:var(--mid);font-size:0.8rem;font-style:italic;">No guests found</div>';
-  }
-
-  updateStats();
+  // Update stats
+  const seatedCount = guests.filter(g => g.seated).length;
+  document.getElementById('total-guests').textContent = guests.length;
+  document.getElementById('seated-count').textContent = seatedCount;
+  document.getElementById('unseated-count').textContent = guests.length - seatedCount;
 }
 
 // ============================================================
-// ASSIGN / REMOVE GUEST FROM SEAT
+// ASSIGN / REMOVE GUESTS
 // ============================================================
 function assignGuestToSeat(guestId, seatKey) {
   const guest = guests.find(g => g.id === guestId);
-  if(!guest) return;
+  if (!guest) return;
 
-  // Remove from old seat if any
-  if(guest.seatKey) {
-    seatingState[guest.seatKey] = null;
-    updateSeatUI(guest.seatKey);
+  // Remember old seat so we can clear it
+  const oldSeatKey = guest.seatKey;
+
+  // Remove guest from their previous seat
+  if (oldSeatKey && oldSeatKey !== seatKey) {
+    seatingState[oldSeatKey] = null;
+    guest.seated = false;
+    guest.seatKey = null;
   }
 
-  // If seat is occupied, move that person out
+  // If target seat already occupied, unseat that guest first
   const existingGuestId = seatingState[seatKey];
-  if(existingGuestId) {
-    const existing = guests.find(g => g.id === existingGuestId);
-    if(existing) { existing.seated = false; existing.seatKey = null; }
+  if (existingGuestId && existingGuestId !== guestId) {
+    const existingGuest = guests.find(g => g.id === existingGuestId);
+    if (existingGuest) {
+      existingGuest.seated = false;
+      existingGuest.seatKey = null;
+    }
   }
 
+  // Place the guest
   seatingState[seatKey] = guestId;
   guest.seated = true;
   guest.seatKey = seatKey;
 
-  updateSeatUI(seatKey);
+  // Refresh UI for affected seats
+  if (oldSeatKey && oldSeatKey !== seatKey) refreshSeatUI(oldSeatKey);
+  refreshSeatUI(seatKey);
   renderGuestList();
-  if(activeTableId) showTableDetail(activeTableId);
+  if (activeTableId) showTableDetail(activeTableId);
 }
 
 function removeGuestFromSeat(seatKey) {
   const gId = seatingState[seatKey];
-  if(!gId) return;
+  if (!gId) return;
   const guest = guests.find(g => g.id === gId);
-  if(guest) { guest.seated = false; guest.seatKey = null; }
+  if (guest) { guest.seated = false; guest.seatKey = null; }
   seatingState[seatKey] = null;
-  updateSeatUI(seatKey);
+  refreshSeatUI(seatKey);
   renderGuestList();
-  if(activeTableId) showTableDetail(activeTableId);
+  if (activeTableId) showTableDetail(activeTableId);
 }
 
-function updateSeatUI(seatKey) {
-  const [tableId, idx] = seatKey.split(/-(?=\d+$)/);
+function refreshSeatUI(seatKey) {
+  const [tableId, idx] = seatKey.split('-');
   const seatEl = document.getElementById(`seat-${tableId}-${idx}`);
-  if(!seatEl) return;
-
+  if (!seatEl) return;
   const gId = seatingState[seatKey];
-  const tooltip = seatEl.querySelector('.seat-tooltip');
   const initialsEl = seatEl.querySelector('.seat-initials');
-
-  if(gId) {
+  const tooltip = seatEl.querySelector('.seat-tooltip');
+  if (gId) {
     const g = guests.find(x => x.id === gId);
     seatEl.classList.add('occupied');
-    tooltip.textContent = g ? g.name : 'Occupied';
-    if(initialsEl && g) {
-      const parts = g.name.trim().split(/\s+/);
-      const initials = parts.length >= 2
-        ? parts[0][0].toUpperCase() + parts[parts.length-1][0].toUpperCase()
-        : parts[0].substring(0,2).toUpperCase();
-      initialsEl.textContent = initials;
-    }
+    seatEl.classList.remove('female', 'male');
+    seatEl.classList.add(g.gender === 'f' ? 'female' : 'male');
+    // Show full name inside circle (wraps if needed)
+    const nameParts = g.name.split(' ');
+    initialsEl.textContent = nameParts.length >= 2
+      ? nameParts[0] + '\n' + nameParts.slice(1).join(' ')
+      : g.name;
+    initialsEl.style.whiteSpace = 'pre';
+    tooltip.textContent = g.name + (g.diet ? ` · ${g.diet}` : '');
   } else {
-    seatEl.classList.remove('occupied');
+    seatEl.classList.remove('occupied', 'female', 'male');
+    initialsEl.textContent = '';
     tooltip.textContent = 'Empty';
-    if(initialsEl) initialsEl.textContent = '';
   }
 }
 
@@ -1093,150 +1310,370 @@ function updateSeatUI(seatKey) {
 // ============================================================
 function showTableDetail(tableId) {
   activeTableId = tableId;
-  const table = TABLES.find(t => t.id === tableId);
-  if(!table) return;
-
+  const tbl = TABLES.find(t => t.id === tableId);
   const content = document.getElementById('detailContent');
-  const seatedGuests = Object.entries(seatingState)
-    .filter(([k,v]) => k.startsWith(tableId+'-') && v)
-    .map(([k,v]) => ({ seatKey: k, seatIdx: parseInt(k.split('-').pop())+1, guest: guests.find(g=>g.id===v) }))
-    .sort((a,b) => a.seatIdx - b.seatIdx);
+  const total = tbl.topSeats + tbl.botSeats + (tbl.leftSeats||0) + (tbl.rightSeats||0);
+  const occupied = Object.entries(seatingState)
+    .filter(([k, v]) => k.startsWith(tableId + '-') && v)
+    .length;
 
-  const totalSeats = table.seatRows.top + (table.seatRows.bottom||0) + (table.sideSeats ? table.sideSeats.left + table.sideSeats.right : 0);
-  const occupied = seatedGuests.length;
+  let html = `<div class="table-detail-header">
+    <h3>${tbl.label}</h3>
+    <p>${occupied} / ${total} seats filled</p>
+  </div><div class="seated-list">`;
 
-  content.innerHTML = `
-    <div class="table-detail-header">
-      <h3>${table.label}</h3>
-      <p>${occupied} / ${totalSeats} seats filled</p>
-    </div>
-    <div class="seated-list">
-      ${seatedGuests.map(({seatKey, seatIdx, guest}) => `
-        <div class="seated-person">
-          <span class="seat-num">#${seatIdx}</span>
-          <span style="flex:1;font-size:0.73rem">${guest.name}</span>
-          <button class="remove-btn" data-seat="${seatKey}" title="Remove">✕</button>
-        </div>
-      `).join('')}
-      ${seatedGuests.length === 0 ? '<div style="padding:12px 16px;font-size:0.75rem;color:var(--mid);font-style:italic;">No guests seated yet</div>' : ''}
-    </div>
-  `;
+  const keys = Object.keys(seatingState).filter(k => k.startsWith(tableId + '-'));
+  keys.forEach(k => {
+    const gId = seatingState[k];
+    if (!gId) return;
+    const g = guests.find(x => x.id === gId);
+    const seatNum = parseInt(k.split('-')[1]) + 1;
+    html += `<div class="seated-person">
+      <span>${g.name}</span>
+      <span class="seat-num">#${seatNum}</span>
+      <button class="remove-btn" data-key="${k}" title="Remove">×</button>
+    </div>`;
+  });
+
+  if (occupied === 0) html += '<div style="padding:12px 16px;font-size:0.75rem;color:var(--mid);font-style:italic;">No guests seated yet</div>';
+  html += '</div>';
+  content.innerHTML = html;
 
   content.querySelectorAll('.remove-btn').forEach(btn => {
-    btn.addEventListener('click', () => removeGuestFromSeat(btn.dataset.seat));
+    btn.addEventListener('click', () => removeGuestFromSeat(btn.dataset.key));
   });
 }
 
 // ============================================================
 // CONTEXT MENU
 // ============================================================
-function showContextMenu(e, seatKey, guestId) {
+let contextSeatKey = null;
+function showContextMenu(e, seatKey, gId) {
+  contextSeatKey = seatKey;
   const menu = document.getElementById('contextMenu');
-  const g = guests.find(x => x.id === guestId);
-  document.getElementById('contextMenuTitle').textContent = g ? g.name : 'Guest';
+  const title = document.getElementById('contextMenuTitle');
+  const guest = guests.find(g => g.id === gId);
+  title.textContent = guest ? guest.name : 'Seat';
   menu.style.left = e.clientX + 'px';
-  menu.style.top = e.clientY + 'px';
+  menu.style.top  = e.clientY + 'px';
   menu.classList.add('visible');
-
-  const removeBtn = document.getElementById('contextRemove');
-  removeBtn.onclick = () => { removeGuestFromSeat(seatKey); menu.classList.remove('visible'); };
 }
-
-document.addEventListener('click', () => document.getElementById('contextMenu').classList.remove('visible'));
-document.addEventListener('mousemove', (e) => {
-  const ghost = document.getElementById('dragGhost');
-  if(ghost.style.display === 'block') {
-    ghost.style.left = (e.clientX + 12) + 'px';
-    ghost.style.top = (e.clientY - 10) + 'px';
+document.getElementById('contextRemove').addEventListener('click', () => {
+  if (contextSeatKey) removeGuestFromSeat(contextSeatKey);
+  document.getElementById('contextMenu').classList.remove('visible');
+  contextSeatKey = null;
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#contextMenu')) {
+    document.getElementById('contextMenu').classList.remove('visible');
   }
 });
 
 // ============================================================
-// STATS
+// DRAG GHOST FOLLOW MOUSE
 // ============================================================
-function updateStats() {
-  const seated = guests.filter(g => g.seated).length;
-  document.getElementById('total-guests').textContent = guests.length;
-  document.getElementById('seated-count').textContent = seated;
-  document.getElementById('unseated-count').textContent = guests.length - seated;
-}
+document.addEventListener('dragover', e => {
+  const ghost = document.getElementById('dragGhost');
+  if (ghost.style.display === 'block') {
+    ghost.style.left = (e.clientX + 14) + 'px';
+    ghost.style.top  = (e.clientY + 8)  + 'px';
+  }
+});
 
 // ============================================================
-// FILTERS & SEARCH
+// SEARCH + FILTER
 // ============================================================
-document.getElementById('guestSearch').addEventListener('input', (e) => {
+// Guest list panel as drop zone — drag a seated guest here to unseat them
+const guestPanel = document.querySelector('.guest-panel');
+guestPanel.addEventListener('dragover', e => { e.preventDefault(); guestPanel.style.outline = '2px dashed var(--gold)'; });
+guestPanel.addEventListener('dragleave', () => { guestPanel.style.outline = ''; });
+guestPanel.addEventListener('drop', e => {
+  e.preventDefault();
+  guestPanel.style.outline = '';
+  if (dragSourceSeatKey) {
+    dropHandled = true;
+    removeGuestFromSeat(dragSourceSeatKey);
+    dragGuestId = null;
+    dragSourceSeatKey = null;
+  }
+});
+
+document.getElementById('guestSearch').addEventListener('input', e => {
   searchTerm = e.target.value;
   renderGuestList();
 });
-
-document.querySelectorAll('.filter-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    activeFilter = tab.dataset.filter;
+document.querySelectorAll('.filter-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
     renderGuestList();
   });
 });
 
-// Floor plan drop zone
-document.getElementById('floorContainer').addEventListener('dragover', e => e.preventDefault());
-
 // ============================================================
-// INIT - Pre-seat guests to their suggested tables
+// AUTO-SEAT: pre-populate guests into their suggested tables
 // ============================================================
-function initSeating() {
-  // Map table labels to IDs
-  const tableLabelMap = {};
-  TABLES.forEach(t => tableLabelMap[t.label.toLowerCase()] = t.id);
+function autoSeatGuests() {
+  // ── Table 3: French Warriors — precise arrangement ──────────
+  // Seat index order: top 0-11, left-end=12, right-end=13, bottom 14-25
+  const t3Order = [
+    // top row positions 0-11
+    "Caroline Ferber", "Ben Marshall", "Jocelyne Simonet", "Gérard Gay",
+    "Laurence Bernard", "Gabriel Soudry", "Nathalie Kerfridin", "David Nes",
+    "Frédérica Roquebert", "Xavier Rollin", "Valerie Coriatt", "William Assouline",
+    // left end (index 12)
+    "Luc Teboul",
+    // right end (index 13)
+    "Caroline Prati",
+    // bottom row positions 14-25
+    "Bob Ferber", "Magali Cayol", "Jean-Yves Simonet", "Ailsa Marshall",
+    "Laurent Bernard", "Christine Soudry", "Laurent Kerfridin", "Eugenie Nes",
+    "Pierre-Olivier Roquebert", "Ariane Regnier", "Andreas Stein", "Réjane Rollin",
+  ];
 
-  // Also create fuzzy match
-  function findTableId(suggestedTable) {
-    const s = suggestedTable.toLowerCase();
-    for(const [label, id] of Object.entries(tableLabelMap)) {
-      if(s.includes('head')) return 't1';
-      if(s.includes('moutonne')) return 't2';
-      if(s.includes('french warrior')) return 't3';
-      if(s.includes('young')) return 't4';
-      if(s.includes('long lost') || s.includes('cousins')) return 't5';
-      if(s.includes('kids')) return 't6';
-      if(s.includes('german')) return 't7';
-      if(s.includes('american')) return 't8';
-    }
-    return null;
-  }
-
-  // Track seat indices per table
-  const tableSeatCounters = {};
-  TABLES.forEach(t => tableSeatCounters[t.id] = 0);
-
-  guests.forEach(g => {
-    const tableId = findTableId(g.suggestedTable);
-    if(!tableId) return;
-    const table = TABLES.find(t => t.id === tableId);
-    const totalSeats = table.seatRows.top + (table.seatRows.bottom||0) + (table.sideSeats ? table.sideSeats.left + table.sideSeats.right : 0);
-    const nextIdx = tableSeatCounters[tableId];
-    if(nextIdx < totalSeats) {
-      const seatKey = `${tableId}-${nextIdx}`;
-      seatingState[seatKey] = g.id;
-      g.seated = true;
-      g.seatKey = seatKey;
-      tableSeatCounters[tableId]++;
+  t3Order.forEach((name, idx) => {
+    const guest = guests.find(g => g.name === name);
+    if (!guest) return;
+    const seatKey = `t3-${idx}`;
+    if (seatingState[seatKey] === null) {
+      seatingState[seatKey] = guest.id;
+      guest.seated = true;
+      guest.seatKey = seatKey;
     }
   });
 
-  // Update all seat UIs
-  Object.entries(seatingState).forEach(([seatKey, gId]) => {
-    if(gId) updateSeatUI(seatKey);
+  // ── All other tables: auto-fill in guest list order ─────────
+  const tableMap = {
+    "Table 1 - Head Table":                      "t1",
+    "Table 2 - La Moutonne City":                "t2",
+    "Table 4 - Young Frenchies / Internationals":"t4",
+    "Table 5 - Long Lost Cousins":               "t5",
+    "Table 6 - Kids Corner":                     "t6",
+    "Table 7 - Germans":                         "t7",
+    "Table 8 - Americans":                       "t8",
+  };
+  guests.forEach(g => {
+    if (g.seated) return; // already placed (Table 3)
+    const tId = tableMap[g.suggestedTable];
+    if (!tId) return;
+    const emptyKey = Object.keys(seatingState).find(k => k.startsWith(tId + '-') && seatingState[k] === null);
+    if (emptyKey) {
+      seatingState[emptyKey] = g.id;
+      g.seated = true;
+      g.seatKey = emptyKey;
+    }
   });
 }
 
+
 // ============================================================
-// BOOT
+// INIT
 // ============================================================
 buildFloor();
-initSeating();
+autoSeatGuests();
+Object.entries(seatingState).forEach(([key, gId]) => {
+  if (gId) refreshSeatUI(key);
+});
 renderGuestList();
-updateStats();
+
+// ============================================================
+// COLLAPSIBLE PANELS
+// ============================================================
+(function() {
+  const guestPanel  = document.querySelector('.guest-panel');
+  const detailPanel = document.querySelector('.detail-panel');
+  const guestBtn    = document.getElementById('toggleGuestPanel');
+  const detailBtn   = document.getElementById('toggleDetailPanel');
+
+  guestBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const collapsed = guestPanel.classList.toggle('collapsed');
+    guestBtn.innerHTML = collapsed ? '&#8250;' : '&#8249;';
+    guestBtn.title = collapsed ? 'Expand panel' : 'Collapse panel';
+  });
+
+  detailBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const collapsed = detailPanel.classList.toggle('collapsed');
+    detailBtn.innerHTML = collapsed ? '&#8249;' : '&#8250;';
+    detailBtn.title = collapsed ? 'Expand panel' : 'Collapse panel';
+  });
+})();
+
+// ============================================================
+(function() {
+  const area    = document.getElementById('floorPlanArea');
+  const container = document.getElementById('floorContainer');
+  const levelEl  = document.getElementById('zoomLevel');
+
+  const MIN_SCALE = 0.3;
+  const MAX_SCALE = 2.0;
+  const STEP = 0.15;
+
+  let scale = 1;
+  let panX = 20;
+  let panY = 20;
+  let isPanning = false;
+  let panStartX = 0;
+  let panStartY = 0;
+  let panStartPanX = 0;
+  let panStartPanY = 0;
+
+  function applyTransform() {
+    container.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+    levelEl.textContent = Math.round(scale * 100) + '%';
+  }
+
+  function clampPan() {
+    // Loose clamp — let user pan freely but not lose the map entirely
+    const areaW = area.clientWidth;
+    const areaH = area.clientHeight;
+    const mapW  = 1660 * scale;
+    const mapH  = 840  * scale;
+    const margin = 100;
+    panX = Math.min(panX, areaW - margin);
+    panX = Math.max(panX, margin - mapW);
+    panY = Math.min(panY, areaH - margin);
+    panY = Math.max(panY, margin - mapH);
+  }
+
+  function zoomTo(newScale, originX, originY) {
+    // originX/Y are in area coords — keep the point under cursor fixed
+    const clampedScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+    const factor = clampedScale / scale;
+    panX = originX - factor * (originX - panX);
+    panY = originY - factor * (originY - panY);
+    scale = clampedScale;
+    clampPan();
+    applyTransform();
+  }
+
+  function resetView() {
+    scale = 1;
+    panX = 20;
+    panY = 20;
+    applyTransform();
+  }
+
+  // Initial position
+  applyTransform();
+
+  // Zoom buttons
+  document.getElementById('zoomIn').addEventListener('click', e => {
+    e.stopPropagation();
+    const cx = area.clientWidth / 2;
+    const cy = area.clientHeight / 2;
+    zoomTo(scale + STEP, cx, cy);
+  });
+  document.getElementById('zoomOut').addEventListener('click', e => {
+    e.stopPropagation();
+    const cx = area.clientWidth / 2;
+    const cy = area.clientHeight / 2;
+    zoomTo(scale - STEP, cx, cy);
+  });
+  document.getElementById('zoomReset').addEventListener('click', e => {
+    e.stopPropagation();
+    resetView();
+  });
+
+  // Buttons only — no mouse wheel zoom (wheel is reserved for normal page scroll)
+
+  // Pan — middle mouse or left mouse on background
+  area.addEventListener('mousedown', e => {
+    if (e.button === 1 || (e.button === 0 && (e.target === area || e.target === container || e.target.classList.contains('floor-viewport')))) {
+      isPanning = true;
+      panStartX = e.clientX;
+      panStartY = e.clientY;
+      panStartPanX = panX;
+      panStartPanY = panY;
+      area.classList.add('panning');
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener('mousemove', e => {
+    if (!isPanning) return;
+    panX = panStartPanX + (e.clientX - panStartX);
+    panY = panStartPanY + (e.clientY - panStartY);
+    clampPan();
+    applyTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isPanning) {
+      isPanning = false;
+      area.classList.remove('panning');
+    }
+  });
+
+  // Touch — pinch to zoom + drag to pan
+  // Listen at document capture phase so we catch touches on any child element
+  let lastTouchDist = null;
+  let pinchActive = false;
+
+  function getTouchDist(e) {
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    return Math.hypot(dx, dy);
+  }
+  function getTouchMid(e) {
+    return {
+      x: (e.touches[0].clientX + e.touches[1].clientX) / 2,
+      y: (e.touches[0].clientY + e.touches[1].clientY) / 2,
+    };
+  }
+  function isInArea(e) {
+    const rect = area.getBoundingClientRect();
+    const t = e.touches[0];
+    return t.clientX >= rect.left && t.clientX <= rect.right &&
+           t.clientY >= rect.top  && t.clientY <= rect.bottom;
+  }
+
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length === 2 && isInArea(e)) {
+      pinchActive = true;
+      isPanning = false;
+      lastTouchDist = getTouchDist(e);
+    } else if (e.touches.length === 1 && isInArea(e)) {
+      isPanning = true;
+      panStartX = e.touches[0].clientX;
+      panStartY = e.touches[0].clientY;
+      panStartPanX = panX;
+      panStartPanY = panY;
+    }
+  }, { passive: true });
+
+  document.addEventListener('touchmove', e => {
+    if (pinchActive && e.touches.length === 2) {
+      e.preventDefault();
+      const dist = getTouchDist(e);
+      const mid  = getTouchMid(e);
+      const rect = area.getBoundingClientRect();
+
+      if (lastTouchDist && lastTouchDist > 0) {
+        const rawFactor = dist / lastTouchDist;
+        // 50% of raw — responsive but not hair-trigger
+        const factor = 1 + (rawFactor - 1) * 0.5;
+        zoomTo(scale * factor, mid.x - rect.left, mid.y - rect.top);
+      }
+      lastTouchDist = dist;
+    } else if (isPanning && e.touches.length === 1) {
+      panX = panStartPanX + (e.touches[0].clientX - panStartX);
+      panY = panStartPanY + (e.touches[0].clientY - panStartY);
+      clampPan();
+      applyTransform();
+    }
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    if (e.touches.length < 2) {
+      pinchActive = false;
+      lastTouchDist = null;
+    }
+    if (e.touches.length === 0) isPanning = false;
+  }, { passive: true });
+})();
 </script>
 </body>
 </html>
